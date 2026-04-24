@@ -1,0 +1,23 @@
+.odas-table-responsive {
+  max-height: 460px;
+  overflow: auto;
+}
+
+.odas-data-table {
+  table-layout: fixed;
+}
+
+.odas-data-table th,
+.odas-data-table td {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.odas-data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}

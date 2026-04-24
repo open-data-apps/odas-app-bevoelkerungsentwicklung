@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Exakter ODAS-Farbverlauf: Hellblau oben-links -> Lila-Blau unten-rechts -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5B8ED4"/>
+      <stop offset="100%" stop-color="#6258C8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hintergrund, abgerundete Ecken wie ODAS-Icons -->
+  <rect width="512" height="512" rx="115" ry="115" fill="url(#bg)"/>
+
+  <!-- Person links (klein) -->
+  <circle cx="120" cy="185" r="34" fill="white"/>
+  <path d="M68 340 Q68 248 120 248 Q172 248 172 340 L172 355 Q120 368 68 355 Z" fill="white"/>
+
+  <!-- Person mitte (mittel) -->
+  <circle cx="256" cy="165" r="44" fill="white"/>
+  <path d="M193 340 Q193 238 256 238 Q319 238 319 340 L319 358 Q256 374 193 358 Z" fill="white"/>
+
+  <!-- Person rechts (gross = Wachstum) -->
+  <circle cx="400" cy="142" r="54" fill="white"/>
+  <path d="M326 340 Q326 224 400 224 Q474 224 474 340 L474 362 Q400 380 326 362 Z" fill="white"/>
+</svg>
