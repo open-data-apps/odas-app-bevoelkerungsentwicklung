@@ -1,24 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <!-- Exakter ODAS-Farbverlauf: Hellblau oben-links -> Lila-Blau unten-rechts -->
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#5B8ED4"/>
-      <stop offset="100%" stop-color="#6258C8"/>
+    <!-- Hintergrund-Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7eb8f7"/>
+      <stop offset="100%" stop-color="#3d3fa5"/>
     </linearGradient>
+    <!-- Schatten-Filter -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.30"/>
+    </filter>
   </defs>
 
-  <!-- Hintergrund, abgerundete Ecken wie ODAS-Icons -->
-  <rect width="512" height="512" rx="115" ry="115" fill="url(#bg)"/>
+  <!-- Hintergrund -->
+  <rect width="512" height="512" rx="108" ry="108" fill="url(#bgGrad)"/>
 
-  <!-- Person links (klein) -->
-  <circle cx="120" cy="185" r="34" fill="white"/>
-  <path d="M68 340 Q68 248 120 248 Q172 248 172 340 L172 355 Q120 368 68 355 Z" fill="white"/>
+  <!-- Optional: Glanz-Overlay oben-links -->
+  <ellipse cx="160" cy="140" rx="180" ry="160" fill="white" fill-opacity="0.07"/>
 
-  <!-- Person mitte (mittel) -->
-  <circle cx="256" cy="165" r="44" fill="white"/>
-  <path d="M193 340 Q193 238 256 238 Q319 238 319 340 L319 358 Q256 374 193 358 Z" fill="white"/>
+  <!-- Motiv: Bevölkerungsentwicklung -->
+  <g filter="url(#shadow)">
+    <!-- Personen -->
+    <circle cx="180" cy="200" r="28" fill="#ffffff"/>
+    <path d="M 140 290 Q 180 240 220 290 L 220 340 L 140 340 Z" fill="#ffffff"/>
+    
+    <circle cx="256" cy="160" r="34" fill="#ffffff"/>
+    <path d="M 206 270 Q 256 210 306 270 L 306 340 L 206 340 Z" fill="#ffffff"/>
 
-  <!-- Person rechts (gross = Wachstum) -->
-  <circle cx="400" cy="142" r="54" fill="white"/>
-  <path d="M326 340 Q326 224 400 224 Q474 224 474 340 L474 362 Q400 380 326 362 Z" fill="white"/>
+    <circle cx="332" cy="200" r="28" fill="#ffffff"/>
+    <path d="M 292 290 Q 332 240 372 290 L 372 340 L 292 340 Z" fill="#ffffff"/>
+
+    <!-- Trendlinie -->
+    <path d="M 120 360 L 200 310 L 280 340 L 380 230" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <polygon points="370,220 400,210 395,245" fill="#ffffff"/>
+  </g>
 </svg>
