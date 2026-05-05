@@ -1,0 +1,79 @@
+{
+  "$schema": "https://frictionlessdata.io/schemas/table-schema.json",
+  "name": "odas-app-bevölkerungsentwicklung",
+  "title": "Bevölkerungsentwicklung",
+  "fields": [
+    {
+      "name": "MONATSZAHL",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "AUSPRAEGUNG",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "JAHR",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "MONAT",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "WERT",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "VORJAHRESWERT",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "VERAEND_VORMONAT_PROZENT",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "VERAEND_VORJAHRESMONAT_PROZENT",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    },
+    {
+      "name": "ZWOELF_MONATE_MITTELWERT",
+      "type": "string",
+      "description": "Wird in der App verwendet",
+      "constraints": {
+        "required": true
+      }
+    }
+  ]
+}
