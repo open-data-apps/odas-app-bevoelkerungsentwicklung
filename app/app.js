@@ -435,197 +435,218 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       <p class="text-muted small mt-2" id="odas-count"></p>
     </div>`;
 
-  // ── Daten laden ────────────────────────────────────────────────────────
-  fetchAllRecordsThroughProxy(5000, updateLoadProgress)
-    .then((json) => {
-      if (!json.success) throw new Error("CKAN API Fehler.");
+  function processRecords(json) {
+    const records = json.result.records;
+    const allFields = json.result.fields
+      .map((f) => f.id)
+      .filter((f) => f !== "_full_text");
+    const visibleFields = getVisibleFields(allFields);
+    let currentPage = 1;
 
-      const records = json.result.records;
-      const allFields = json.result.fields
-        .map((f) => f.id)
-        .filter((f) => f !== "_full_text");
-      const visibleFields = getVisibleFields(allFields);
-      let currentPage = 1;
+    if (!records || !records.length) {
+      enclosingHtmlDivElement.querySelector("#odas-table-wrap").innerHTML =
+        '<p class="p-3 text-muted">Keine Datensätze gefunden.</p>';
+      return;
+    }
 
-      if (!records || !records.length) {
-        enclosingHtmlDivElement.querySelector("#odas-table-wrap").innerHTML =
-          '<p class="p-3 text-muted">Keine Datensätze gefunden.</p>';
-        return;
-      }
+    // Unique-Werte für Filter
+    function uniqueSorted(vals) {
+      return [...new Set(vals)].sort((a, b) => {
+        const na = Number(a),
+          nb = Number(b);
+        return !isNaN(na) && !isNaN(nb)
+          ? na - nb
+          : String(a).localeCompare(String(b), "de");
+      });
+    }
+    function fillSelect(id, vals) {
+      const sel = enclosingHtmlDivElement.querySelector(id);
+      if (!sel) return;
+      uniqueSorted(vals).forEach((v) => {
+        const o = document.createElement("option");
+        o.value = o.textContent = v;
+        sel.appendChild(o);
+      });
+    }
 
-      // Unique-Werte für Filter
-      function uniqueSorted(vals) {
-        return [...new Set(vals)].sort((a, b) => {
-          const na = Number(a),
-            nb = Number(b);
-          return !isNaN(na) && !isNaN(nb)
-            ? na - nb
-            : String(a).localeCompare(String(b), "de");
-        });
-      }
-      function fillSelect(id, vals) {
-        const sel = enclosingHtmlDivElement.querySelector(id);
-        if (!sel) return;
-        uniqueSorted(vals).forEach((v) => {
-          const o = document.createElement("option");
-          o.value = o.textContent = v;
-          sel.appendChild(o);
-        });
-      }
-
-      fillSelect(
-        "#odas-filter-thema",
-        records.map((r) => r["MONATSZAHL"]),
-      );
-      fillSelect(
-        "#odas-filter-ausp",
-        records.map((r) => r["AUSPRAEGUNG"]),
-      );
-      fillSelect(
-        "#odas-filter-jahr",
-        records.map((r) => r["JAHR"]),
-      );
-
-      // ── Render-Funktion ────────────────────────────────────────────────
-      function render(data) {
-        const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
-        currentPage = Math.min(Math.max(currentPage, 1), totalPages);
-        const pageStart = (currentPage - 1) * PAGE_SIZE;
-        const pageData = data.slice(pageStart, pageStart + PAGE_SIZE);
-
-        // Tabelle
-        const header = visibleFields
-          .map(
-            (f) =>
-              `<th class="text-nowrap" title="${f}">${toColumnLabel(f)}</th>`,
-          )
-          .join("");
-        const rows = pageData
-          .map(
-            (r) =>
-              "<tr>" +
-              visibleFields
-                .map((f) => `<td title="${r[f] ?? ""}">${r[f] ?? ""}</td>`)
-                .join("") +
-              "</tr>",
-          )
-          .join("");
-
-        enclosingHtmlDivElement.querySelector("#odas-table-wrap").innerHTML = `
-          <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center px-3 pt-3 pb-2">
-            <div class="small text-muted">Zeige ${data.length === 0 ? 0 : pageStart + 1}–${Math.min(pageStart + PAGE_SIZE, data.length)} von ${data.length} Datensätzen</div>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Tabellen-Paginierung">
-              <button class="btn btn-outline-secondary" id="odas-prev-page" ${currentPage === 1 ? "disabled" : ""}>Zurück</button>
-              <button class="btn btn-outline-secondary disabled" id="odas-page-info">Seite ${currentPage}/${totalPages}</button>
-              <button class="btn btn-outline-secondary" id="odas-next-page" ${currentPage === totalPages ? "disabled" : ""}>Weiter</button>
-            </div>
-          </div>
-          <div class="table-responsive odas-table-responsive">
-            <table class="table table-sm table-hover table-striped mb-0 odas-data-table">
-              <thead class="table-dark"><tr>${header}</tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>`;
-
-        enclosingHtmlDivElement.querySelector("#odas-count").textContent =
-          `${data.length} Datensätze.`;
-
-        const prevBtn =
-          enclosingHtmlDivElement.querySelector("#odas-prev-page");
-        const nextBtn =
-          enclosingHtmlDivElement.querySelector("#odas-next-page");
-        if (prevBtn)
-          prevBtn.addEventListener("click", () => {
-            if (currentPage > 1) {
-              currentPage -= 1;
-              render(data);
-            }
-          });
-        if (nextBtn)
-          nextBtn.addEventListener("click", () => {
-            if (currentPage < totalPages) {
-              currentPage += 1;
-              render(data);
-            }
-          });
-
-        // Chart: WERT nach JAHR (Jahressumme)
-        if (typeof Chart !== "undefined") {
-          const byJahr = {};
-          data.forEach((r) => {
-            const j = r["JAHR"];
-            const v = parseFloat(String(r["WERT"] || "0").replace(",", "."));
-            if (j && !isNaN(v)) byJahr[j] = (byJahr[j] || 0) + v;
-          });
-          const jahre = Object.keys(byJahr).sort();
-          const werte = jahre.map((j) => byJahr[j]);
-          const canvas = enclosingHtmlDivElement.querySelector("#odas-chart");
-          if (canvas) {
-            if (window._odasChart) window._odasChart.destroy();
-            window._odasChart = new Chart(canvas.getContext("2d"), {
-              type: "line",
-              data: {
-                labels: jahre,
-                datasets: [
-                  {
-                    label: "WERT (Jahressumme)",
-                    data: werte,
-                    borderColor: "rgba(13,110,253,1)",
-                    backgroundColor: "rgba(13,110,253,0.1)",
-                    fill: true,
-                    tension: 0.3,
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  title: { display: true, text: `${titel} – Jahresverlauf` },
-                },
-                scales: { y: { beginAtZero: false } },
-              },
-            });
-          }
+    // Vor dem Befüllen die alten Optionen entfernen (außer der ersten "Alle" Option)
+    ["#odas-filter-thema", "#odas-filter-ausp", "#odas-filter-jahr"].forEach((id) => {
+      const sel = enclosingHtmlDivElement.querySelector(id);
+      if (sel) {
+        while (sel.options.length > 1) {
+          sel.remove(1);
         }
       }
-
-      // ── Filter-Logik ───────────────────────────────────────────────────
-      function getFiltered() {
-        const fT =
-          enclosingHtmlDivElement.querySelector("#odas-filter-thema")?.value ||
-          "";
-        const fA =
-          enclosingHtmlDivElement.querySelector("#odas-filter-ausp")?.value ||
-          "";
-        const fJ =
-          enclosingHtmlDivElement.querySelector("#odas-filter-jahr")?.value ||
-          "";
-        return records.filter(
-          (r) =>
-            (!fT || String(r["MONATSZAHL"]) === fT) &&
-            (!fA || String(r["AUSPRAEGUNG"]) === fA) &&
-            (!fJ || String(r["JAHR"]) === fJ),
-        );
-      }
-
-      ["#odas-filter-thema", "#odas-filter-ausp", "#odas-filter-jahr"].forEach(
-        (id) => {
-          const el = enclosingHtmlDivElement.querySelector(id);
-          if (el)
-            el.addEventListener("change", () => {
-              currentPage = 1;
-              render(getFiltered());
-            });
-        },
-      );
-
-      // Erstmals rendern
-      render(records);
-    })
-    .catch((err) => {
-      enclosingHtmlDivElement.querySelector("#odas-table-wrap").innerHTML =
-        `<div class="alert alert-danger m-3"><strong>Fehler:</strong> ${err.message}</div>`;
     });
+
+    fillSelect(
+      "#odas-filter-thema",
+      records.map((r) => r["MONATSZAHL"]),
+    );
+    fillSelect(
+      "#odas-filter-ausp",
+      records.map((r) => r["AUSPRAEGUNG"]),
+    );
+    fillSelect(
+      "#odas-filter-jahr",
+      records.map((r) => r["JAHR"]),
+    );
+
+    // ── Render-Funktion ────────────────────────────────────────────────
+    function render(data) {
+      const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+      currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+      const pageStart = (currentPage - 1) * PAGE_SIZE;
+      const pageData = data.slice(pageStart, pageStart + PAGE_SIZE);
+
+      // Tabelle
+      const header = visibleFields
+        .map(
+          (f) =>
+            `<th class="text-nowrap" title="${f}">${toColumnLabel(f)}</th>`,
+        )
+        .join("");
+      const rows = pageData
+        .map(
+          (r) =>
+            "<tr>" +
+            visibleFields
+              .map((f) => `<td title="${r[f] ?? ""}">${r[f] ?? ""}</td>`)
+              .join("") +
+            "</tr>",
+        )
+        .join("");
+
+      enclosingHtmlDivElement.querySelector("#odas-table-wrap").innerHTML = `
+        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center px-3 pt-3 pb-2">
+          <div class="small text-muted">Zeige ${data.length === 0 ? 0 : pageStart + 1}–${Math.min(pageStart + PAGE_SIZE, data.length)} von ${data.length} Datensätzen</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Tabellen-Paginierung">
+            <button class="btn btn-outline-secondary" id="odas-prev-page" ${currentPage === 1 ? "disabled" : ""}>Zurück</button>
+            <button class="btn btn-outline-secondary disabled" id="odas-page-info">Seite ${currentPage}/${totalPages}</button>
+            <button class="btn btn-outline-secondary" id="odas-next-page" ${currentPage === totalPages ? "disabled" : ""}>Weiter</button>
+          </div>
+        </div>
+        <div class="table-responsive odas-table-responsive">
+          <table class="table table-sm table-hover table-striped mb-0 odas-data-table">
+            <thead class="table-dark"><tr>${header}</tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+
+      enclosingHtmlDivElement.querySelector("#odas-count").textContent =
+        `${data.length} Datensätze.`;
+
+      const prevBtn =
+        enclosingHtmlDivElement.querySelector("#odas-prev-page");
+      const nextBtn =
+        enclosingHtmlDivElement.querySelector("#odas-next-page");
+      if (prevBtn)
+        prevBtn.addEventListener("click", () => {
+          if (currentPage > 1) {
+            currentPage -= 1;
+            render(data);
+          }
+        });
+      if (nextBtn)
+        nextBtn.addEventListener("click", () => {
+          if (currentPage < totalPages) {
+            currentPage += 1;
+            render(data);
+          }
+        });
+
+      // Chart: WERT nach JAHR (Jahressumme)
+      if (typeof Chart !== "undefined") {
+        const byJahr = {};
+        data.forEach((r) => {
+          const j = r["JAHR"];
+          const v = parseFloat(String(r["WERT"] || "0").replace(",", "."));
+          if (j && !isNaN(v)) byJahr[j] = (byJahr[j] || 0) + v;
+        });
+        const jahre = Object.keys(byJahr).sort();
+        const werte = jahre.map((j) => byJahr[j]);
+        const canvas = enclosingHtmlDivElement.querySelector("#odas-chart");
+        if (canvas) {
+          if (window._odasChart) window._odasChart.destroy();
+          window._odasChart = new Chart(canvas.getContext("2d"), {
+            type: "line",
+            data: {
+              labels: jahre,
+              datasets: [
+                {
+                  label: "WERT (Jahressumme)",
+                  data: werte,
+                  borderColor: "rgba(13,110,253,1)",
+                  backgroundColor: "rgba(13,110,253,0.1)",
+                  fill: true,
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                title: { display: true, text: `${titel} – Jahresverlauf` },
+              },
+              scales: { y: { beginAtZero: false } },
+            },
+          });
+        }
+      }
+    }
+
+    // ── Filter-Logik ───────────────────────────────────────────────────
+    function getFiltered() {
+      const fT =
+        enclosingHtmlDivElement.querySelector("#odas-filter-thema")?.value ||
+        "";
+      const fA =
+        enclosingHtmlDivElement.querySelector("#odas-filter-ausp")?.value ||
+        "";
+      const fJ =
+        enclosingHtmlDivElement.querySelector("#odas-filter-jahr")?.value ||
+        "";
+      return records.filter(
+        (r) =>
+          (!fT || String(r["MONATSZAHL"]) === fT) &&
+          (!fA || String(r["AUSPRAEGUNG"]) === fA) &&
+          (!fJ || String(r["JAHR"]) === fJ),
+      );
+    }
+
+    ["#odas-filter-thema", "#odas-filter-ausp", "#odas-filter-jahr"].forEach(
+      (id) => {
+        const el = enclosingHtmlDivElement.querySelector(id);
+        if (el)
+          el.addEventListener("change", () => {
+            currentPage = 1;
+            render(getFiltered());
+          });
+      },
+    );
+
+    // Erstmals rendern
+    render(records);
+  }
+
+  // ── Daten laden ────────────────────────────────────────────────────────
+  window._odas_cachedDevelopmentRecordsMap = window._odas_cachedDevelopmentRecordsMap || {};
+  if (window._odas_cachedDevelopmentRecordsMap[apiurl]) {
+    processRecords(window._odas_cachedDevelopmentRecordsMap[apiurl]);
+  } else {
+    fetchAllRecordsThroughProxy(5000, updateLoadProgress)
+      .then((json) => {
+        if (!json.success) throw new Error("CKAN API Fehler.");
+        window._odas_cachedDevelopmentRecordsMap[apiurl] = json;
+        processRecords(json);
+      })
+      .catch((err) => {
+        const tableWrap = enclosingHtmlDivElement.querySelector("#odas-table-wrap");
+        if (tableWrap) {
+          tableWrap.innerHTML = `<div class="alert alert-danger m-3"><strong>Fehler:</strong> ${err.message}</div>`;
+        }
+      });
+  }
 
   return null;
 }
