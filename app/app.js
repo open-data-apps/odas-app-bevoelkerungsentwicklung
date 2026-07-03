@@ -12,6 +12,54 @@
  * @returns {null}
  */
 
+// ── Hilfsfunktion: HTML-Escaping für Textfelder ─────────────────────────────
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ── Hilfsfunktion: Methodikbox (TODO 2) ─────────────────────────────────
+function renderMethodikbox(configdata) {
+  const hinweis = String(configdata.datenquelleHinweis || "").trim();
+  const stand = String(configdata.datenStand || "").trim();
+  if (!hinweis && !stand) return "";
+  const standHtml = stand
+    ? '<p class="text-muted small mb-2">' + escapeHtml(stand) + "</p>"
+    : "";
+  return (
+    '<section class="be-methodik mt-3">' +
+    '<button class="be-methodik-toggle collapsed" type="button" ' +
+    'data-bs-toggle="collapse" data-bs-target="#be-methodik-body" ' +
+    'aria-expanded="false" aria-controls="be-methodik-body">' +
+    '<h2 class="h5 mb-0">Methodik &amp; Datenquelle</h2>' +
+    '<span class="be-methodik-chevron" aria-hidden="true">&#9662;</span>' +
+    "</button>" +
+    '<div id="be-methodik-body" class="collapse">' +
+    '<div class="be-methodik-content">' +
+    standHtml +
+    hinweis +
+    "</div></div></section>"
+  );
+}
+
+// ── Hilfsfunktion: Weitere Informationen (TODO 4) ────────────────────────
+function renderWeitereInfos(configdata) {
+  const links = String(configdata.weiterfuehrendeLinks || "").trim();
+  if (!links) return "";
+  return (
+    '<section class="be-weitere-infos mt-4">' +
+    '<h2 class="h5 mb-3">Weitere Informationen</h2>' +
+    '<div class="be-weitere-infos-content">' +
+    links +
+    "</div></section>"
+  );
+}
+
 // ── Hilfsfunktion: Pfad + Query aus einer URL extrahieren ──────────────────
 function extractPathFromUrl(url) {
   try {
@@ -382,14 +430,15 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   // ── Grundgerüst rendern ────────────────────────────────────────────────
   enclosingHtmlDivElement.innerHTML = `
     <div class="container-fluid py-3">
-      <h2 class="mb-1">${titel}</h2>
-      <p class="text-muted small mb-3">
+      <h2 class="mb-1">${escapeHtml(titel)}</h2>
+      <p class="text-muted small mb-1">
         Quelle: Statistisches Amt München &mdash;
         <a href="https://opendata.muenchen.de/dataset/monatszahlen-bevoelkerung"
            target="_blank" rel="noopener">opendata.muenchen.de</a> &mdash;
         Lizenz: <a href="https://www.govdata.de/dl-de/by-2-0"
            target="_blank" rel="noopener">dl-by-de/2.0</a>
       </p>
+      <div id="be-datenstand-wrap"></div>
 
       <div class="row g-2 mb-3">
         <div class="col-auto">
@@ -433,7 +482,26 @@ function app(configdata = {}, enclosingHtmlDivElement) {
         </div>
       </div>
       <p class="text-muted small mt-2" id="odas-count"></p>
+      <div id="be-methodik-wrap"></div>
+      <div id="be-weitere-infos-wrap"></div>
     </div>`;
+
+  // Schale 4: Datenfrische-Indikator und Weitere Informationen
+  const datenStandVal = String(configdata.datenStand || "").trim();
+  if (datenStandVal) {
+    const dsel = enclosingHtmlDivElement.querySelector("#be-datenstand-wrap");
+    if (dsel) dsel.innerHTML = '<div class="text-muted small mb-2">' + escapeHtml(datenStandVal) + '</div>';
+  }
+  const methodikHtml = renderMethodikbox(configdata);
+  if (methodikHtml) {
+    const mel = enclosingHtmlDivElement.querySelector("#be-methodik-wrap");
+    if (mel) mel.innerHTML = methodikHtml;
+  }
+  const weitereInfosHtml = renderWeitereInfos(configdata);
+  if (weitereInfosHtml) {
+    const wel = enclosingHtmlDivElement.querySelector("#be-weitere-infos-wrap");
+    if (wel) wel.innerHTML = weitereInfosHtml;
+  }
 
   function processRecords(json) {
     const records = json.result.records;

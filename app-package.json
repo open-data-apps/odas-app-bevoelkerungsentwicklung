@@ -3,7 +3,7 @@
   "app-entwickler-name": "ondics-gmbh",
   "name-in-url": "bevoelkerungsentwicklung",
   "name": "Bevölkerungsentwicklung",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "odas-app-icon": "assets/odas-app-icon.svg",
   "app-icon": "assets/odas-app-icon.svg",
   "kurzbeschreibung": "Visualisiert Monatszahlen zur Bevölkerung mit Filtern, Tabelle und Jahres-Chart.",
@@ -95,14 +95,15 @@
       },
       "default": [
         "_multiline_",
-        "Die App visualisiert Monatszahlen zur Bevölkerung.",
-        "Die Daten werden über den konfigurierten CKAN-Datastore-Endpunkt geladen.",
-        "Der Abruf läuft über den lokalen Proxy-Endpunkt /odp-data.",
+        "Die App visualisiert Monatszahlen zur Bevölkerung und zeigt langfristige Trends als interaktives Diagramm und durchsuchbare Tabelle.",
+        "## Für wen ist diese App?",
+        "Diese App visualisiert die Bevölkerungsentwicklung. Sie richtet sich an Demografieforscher:innen, Stadtplaner:innen und Bürger:innen, die langfristige Trends verstehen möchten.",
         "## App-Anbieter",
         "Die App wird bereit gestellt von <a href=\"{{odp.anbieter.url}}\">{{odp.anbieter.name}}</a>",
         "## Datenquelle",
-        "Die Daten kommen aus unserem Open Data Portal <a href=\"{{odp.url}}\">{{odp.name}}</a>",
-        "Die Datenquelle ist in unserem Open Data Portal <a href=\"{{appinstanz.apiurl}}\">{{appinstanz.apiurl}}</a>.",
+        "- **Open Data Portal:** <a href=\"https://opendata.muenchen.de\" target=\"_blank\">opendata.muenchen.de</a>",
+        "- **Datensatz:** <a href=\"https://opendata.muenchen.de/dataset/monatszahlen-bevoelkerung\" target=\"_blank\">Monatszahlen zur Bevölkerung</a>",
+        "- **Ressource:** <a href=\"{{appinstanz.apiurl}}\" target=\"_blank\">CKAN Datastore API</a>",
         "## Über diese App",
         "Die App wurde entwickelt von <a href=\"{{app.developer.url}}\">{{app.developer.name}}</a>. App-Version: {{app.version}}.",
         "## Open Data App Store",
@@ -180,6 +181,27 @@
       "default": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f",
       "beispiel": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f",
       "erforderlich": "ja"
+    },
+    "datenStand": {
+      "label": "Datenstand",
+      "hilfe": "Freitext-Datum, z.B. 'Datenstand: 2023'. Leer = ausgeblendet.",
+      "format": { "typ": "string", "laenge": 60 },
+      "default": "Datenstand: 2023",
+      "erforderlich": "nein"
+    },
+    "datenquelleHinweis": {
+      "label": "Methodik / Datenquelle-Hinweis",
+      "hilfe": "Herkunft, Erhebungsmethode, Limitierungen (Markdown/HTML). Leer = ausgeblendet.",
+      "format": { "typ": "markdown" },
+      "default": "Die Bevölkerungsdaten werden über die CKAN Datastore API geladen. Alle Datensätze werden paginiert abgerufen (5000 pro Seite) und im Browser zwischengespeichert. Das Liniendiagramm zeigt die Jahressummen, gruppiert nach dem ausgewählten Thema und der Ausprägung. Die Proxy-URL wird mit mehreren Fallback-Kandidaten aufgelöst.",
+      "erforderlich": "nein"
+    },
+    "weiterfuehrendeLinks": {
+      "label": "Weiterführende Links",
+      "hilfe": "Verwandte Datensätze / Hintergrundquellen (Markdown/HTML). Leer = ausgeblendet.",
+      "format": { "typ": "markdown" },
+      "default": "<ul><li><a href=\"https://opendata.muenchen.de/dataset/monatszahlen-bevoelkerung\" target=\"_blank\">Monatszahlen zur Bevölkerung — opendata.muenchen.de</a></li><li><a href=\"https://stadt.muenchen.de/service/info/statistisches-amt/1029862/\" target=\"_blank\">Statistisches Amt München</a></li></ul>",
+      "erforderlich": "nein"
     },
     "sprache": {
       "label": "Sprache der App",
