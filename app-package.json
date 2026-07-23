@@ -3,7 +3,7 @@
   "app-entwickler-name": "ondics-gmbh",
   "name-in-url": "bevoelkerungsentwicklung",
   "name": "Bevölkerungsentwicklung",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "odas-app-icon": "assets/odas-app-icon.svg",
   "app-icon": "assets/odas-app-icon.svg",
   "kurzbeschreibung": "Visualisiert Monatszahlen zur Bevölkerung mit Filtern, Tabelle und Jahres-Chart.",
@@ -166,6 +166,19 @@
         "laenge": 50
       },
       "default": "(C) Copyright {{jahr}} | App & Daten: {{odp.anbieter.name}} | App-Entwickler: {{app.developer.name}} | ODAS: {{odas.betreiber.name}}",
+      "erforderlich": "ja"
+    },
+    "proxyAktiv": {
+      "label": "ODAS-Proxy aktivieren",
+      "hilfe": "Mit ja werden Datenabrufe über den ODAS-Proxy gesendet. Die konfigurierte Datenquelle (opendata.muenchen.de) sendet keinen CORS-Header, deshalb ist ja hier der Standard. Nur mit einer CORS-freigegebenen Datenquelle kann auf nein umgestellt und die App standalone betrieben werden.",
+      "default": "ja",
+      "format": {
+        "typ": "dropdown",
+        "optionen": [
+          "nein",
+          "ja"
+        ]
+      },
       "erforderlich": "ja"
     },
     "apiurl": {

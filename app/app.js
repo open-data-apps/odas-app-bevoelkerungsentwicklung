@@ -60,14 +60,82 @@ function renderWeitereInfos(configdata) {
   );
 }
 
-// ── Hilfsfunktion: Pfad + Query aus einer URL extrahieren ──────────────────
+function isOdasProxyEnabled(configdata = {}) {
+  return String(configdata.proxyAktiv || "").trim().toLowerCase() === "ja";
+}
+
 function extractPathFromUrl(url) {
   try {
-    const u = new URL(url);
-    return u.pathname + u.search;
-  } catch (e) {
-    return url;
+    const parsedUrl = new URL(url);
+    return parsedUrl.pathname + parsedUrl.search;
+  } catch (_error) {
+    return String(url || "");
   }
+}
+
+function getOdasAppBasePath(pathname) {
+  let appPath =
+    pathname === undefined
+      ? typeof window !== "undefined"
+        ? window.location.pathname
+        : "/"
+      : String(pathname || "/");
+
+  if (!appPath.endsWith("/")) {
+    const lastSlashIndex = appPath.lastIndexOf("/");
+    const lastSegment = appPath.substring(lastSlashIndex + 1);
+    if (lastSegment.includes(".")) {
+      appPath = appPath.substring(0, lastSlashIndex + 1);
+    }
+  }
+
+  return appPath.replace(/\/+$/, "");
+}
+
+function getOdasProxyEndpoint(targetUrl, pathname) {
+  const appPath = getOdasAppBasePath(pathname);
+  return `${appPath}/odp-data?path=${encodeURIComponent(
+    extractPathFromUrl(targetUrl),
+  )}`;
+}
+
+async function fetchViaOdasProxy(targetUrl) {
+  const response = await fetch(getOdasProxyEndpoint(targetUrl), {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error(`ODAS-Proxy-Fehler: HTTP ${response.status}`);
+  }
+
+  const proxyData = await response.json();
+  if (!proxyData || typeof proxyData.content !== "string") {
+    throw new Error("ODAS-Proxy-Antwort enthält keinen content-String.");
+  }
+
+  return proxyData.content;
+}
+
+async function fetchOdasResource(targetUrl, configdata = {}) {
+  if (isOdasProxyEnabled(configdata)) {
+    return fetchViaOdasProxy(targetUrl);
+  }
+
+  try {
+    const response = await fetch(targetUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return response.text();
+  } catch (error) {
+    throw new Error(
+      `Direkter Datenabruf fehlgeschlagen (${error.message}). Bitte prüfen Sie die Daten-URL und die CORS-Freigabe der Datenquelle.`,
+    );
+  }
+}
+
+async function fetchOdasJson(targetUrl, configdata = {}) {
+  return JSON.parse(await fetchOdasResource(targetUrl, configdata));
 }
 
 // ── Hilfsfunktion: Ist ein String JSON? ───────────────────────────────────
@@ -171,90 +239,26 @@ function normalizeAsCkanPayload(data) {
   return data;
 }
 
-// ── Proxy-Antwort parsen ──────────────────────────────────────────────────
-// Der ODAS-Proxy wrappt die Antwort in { content: "...", contentType: "..." }
-// Wir entpacken und normalisieren auf CKAN-Shape.
-function parseProxyResponse(responseText) {
+// ── Antworttext auf CKAN-Shape normalisieren (JSON oder CSV) ───────────────
+function parseDatenAntwort(responseText) {
   const trimmed = String(responseText).trim();
-  if (!trimmed) throw new Error("Leere Proxy-Antwort.");
+  if (!trimmed) throw new Error("Leere Antwort der Datenquelle.");
 
   if (looksLikeJson(trimmed)) {
-    let proxyData;
     try {
-      proxyData = JSON.parse(trimmed);
+      return normalizeAsCkanPayload(JSON.parse(trimmed));
     } catch {
-      throw new Error("Proxy-Antwort ist kein gültiges JSON.");
+      throw new Error("Antwort ist kein gültiges JSON.");
     }
-
-    // Fall 1: Proxy gibt { content: ..., contentType: ... }
-    if ("content" in proxyData) {
-      // content ist bereits ein Objekt (Proxy hat JSON geparst)
-      if (typeof proxyData.content === "object" && proxyData.content !== null) {
-        return normalizeAsCkanPayload(proxyData.content);
-      }
-      // content ist ein String
-      if (typeof proxyData.content === "string") {
-        const contentType = String(proxyData.contentType || "").toLowerCase();
-        const contentText = proxyData.content;
-        if (contentType.includes("csv") || !looksLikeJson(contentText)) {
-          return parseCsvToCkan(contentText);
-        }
-        try {
-          return normalizeAsCkanPayload(JSON.parse(contentText));
-        } catch {
-          throw new Error("Proxy-Inhalt ist weder gültiges JSON noch CSV.");
-        }
-      }
-    }
-
-    // Fall 2: Proxy gibt direktes CKAN-JSON (kein content-Wrapper)
-    return normalizeAsCkanPayload(proxyData);
   }
 
-  // Fall 3: Proxy gibt reinen Text zurück → als CSV versuchen
+  // Kein JSON → als CSV versuchen
   return parseCsvToCkan(trimmed);
 }
 
-// ── Proxy-Fetch mit mehreren Kandidaten (wie realtimedataview) ─────────────
-async function fetchJsonThroughProxy(url) {
-  // App-Basispfad ermitteln (ohne index.html / trailing slash)
-  const appBasePath = window.location.pathname.endsWith("/")
-    ? window.location.pathname
-    : window.location.pathname.replace(/\/[^/]*$/, "/");
-
-  const pathOnly = extractPathFromUrl(url); // z.B. /api/3/action/datastore_search?...
-  const encodedFull = encodeURIComponent(url); // vollständige URL
-  const encodedPath = encodeURIComponent(pathOnly); // nur Pfad
-
-  // Proxy-Kandidaten — identisch zum realtimedataview-Pattern
-  const proxyCandidates = [
-    `${appBasePath}odp-data?path=${encodedFull}`,
-    `${appBasePath}odp-data?path=${encodedPath}`,
-    `odp-data?path=${encodedFull}`,
-    `odp-data?path=${encodedPath}`,
-    `${window.location.origin}/odp-data?path=${encodedFull}`,
-  ];
-
-  const uniqueCandidates = [...new Set(proxyCandidates)];
-  const attempts = [];
-
-  for (const endpoint of uniqueCandidates) {
-    for (const method of ["POST", "GET"]) {
-      try {
-        const response = await fetch(endpoint, {
-          method,
-          credentials: "same-origin",
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const responseText = await response.text();
-        return parseProxyResponse(responseText);
-      } catch (error) {
-        attempts.push(`${method} ${endpoint}: ${error.message}`);
-      }
-    }
-  }
-
-  throw new Error("Proxy-Aufruf fehlgeschlagen.\n" + attempts.join("\n"));
+// ── Daten laden: direkt oder ueber den ODAS-Proxy (proxyAktiv) ─────────────
+async function fetchDatenAlsCkan(url, configdata = {}) {
+  return parseDatenAntwort(await fetchOdasResource(url, configdata));
 }
 
 // ── Haupt-App-Funktion ────────────────────────────────────────────────────
@@ -375,7 +379,10 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     onProgress({ loaded: 0, total: null, pages: 0 });
 
     while (true) {
-      const json = await fetchJsonThroughProxy(buildUrl(batchSize, offset));
+      const json = await fetchDatenAlsCkan(
+        buildUrl(batchSize, offset),
+        configdata,
+      );
       if (!json.success) throw new Error("CKAN API Fehler.");
 
       const result = json.result || {};

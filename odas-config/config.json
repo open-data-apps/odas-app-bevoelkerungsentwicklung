@@ -1,5 +1,6 @@
 {
   "apiVersion": "1",
+  "proxyAktiv": "ja",
   "titel": "Titel der App",
   "seitentitel": "Seitentitel der App",
   "icon": "logo_ondics.png",
