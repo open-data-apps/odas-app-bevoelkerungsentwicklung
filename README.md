@@ -77,6 +77,9 @@ App läuft auf http://localhost:8089 (Konfiguration wird lokal geladen).
 Die App kann lokal, eigenstaendig hinter einem Traefik-Reverse-Proxy oder ueber den ODAS
 betrieben werden.
 
+**Standalone ist eingeschraenkt** und nur mit einer ausgetauschten, CORS-freigegebenen
+Datenquelle moeglich — siehe den Hinweis unter „Standalone-Betrieb".
+
 ### Datenabruf: `proxyAktiv`
 
 | Wert   | Bedeutung                                                                   |
@@ -92,13 +95,25 @@ gesetzt werden.
 
 ### Standalone-Betrieb
 
+> **Standalone ist bei dieser App eingeschraenkt.** Mit der mitgelieferten Datenquelle
+> ist sie in **keiner** Standalone-Konfiguration funktionsfaehig: mit `proxyAktiv: "ja"`
+> fehlt der Proxy im Container, mit `"nein"` greift die CORS-Sperre der Quelle. Der
+> Standalone-Betrieb setzt deshalb zwingend eine ausgetauschte, CORS-freigegebene
+> Datenquelle voraus.
+
 Voraussetzung: ein laufender Traefik mit dem externen Docker-Netzwerk `proxynet`,
 dem EntryPoint `websecure` und dem Zertifikatsresolver `letsencrypt`.
 
 1. In `docker-compose.standalone.yml` den Platzhalter `app1.example.com` durch den
    echten FQDN ersetzen.
-2. In `odas-config/config.json` `proxyAktiv` auf `nein` belassen.
-3. Starten:
+2. In `odas-config/config.json` `proxyAktiv` auf `nein` **setzen** — ausgeliefert
+   wird `ja`. Der ODAS-Proxy `…/odp-data` steht im Standalone-Container nicht zur
+   Verfuegung; die mitgelieferte `nginx.conf` kennt keinen entsprechenden
+   `location`-Block.
+3. Die Datenquelle (`apiurl`) auf eine CORS-freigegebene Ressource umstellen. Die
+   mitgelieferte Quelle (`opendata.muenchen.de`) sendet keinen
+   `Access-Control-Allow-Origin`-Header und ist standalone **nicht** nutzbar.
+4. Starten:
 
 ```bash
 STANDALONE=true make up
