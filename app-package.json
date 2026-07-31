@@ -3,7 +3,7 @@
   "app-entwickler-name": "ondics-gmbh",
   "name-in-url": "bevoelkerungsentwicklung",
   "name": "Bevölkerungsentwicklung",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "odas-app-icon": "assets/odas-app-icon.svg",
   "app-icon": "assets/odas-app-icon.svg",
   "kurzbeschreibung": "Visualisiert Monatszahlen zur Bevölkerung mit Filtern, Tabelle und Jahres-Chart.",
@@ -23,9 +23,19 @@
     "<h3>Open Data App Store</h3>",
     "<p>Diese App ist für den Open Data App Store vorbereitet und kann mit kompatiblen kommunalen Bevölkerungsdaten konfiguriert werden.</p>"
   ],
-  "tags-funktion": ["Datenvisualisierung", "Filter", "Zeitreihe"],
-  "tags-dateityp": ["JSON"],
-  "tags-datenart": ["Bevölkerung", "Statistik", "Zeitreihe"],
+  "tags-funktion": [
+    "Datenvisualisierung",
+    "Filter",
+    "Zeitreihe"
+  ],
+  "tags-dateityp": [
+    "JSON"
+  ],
+  "tags-datenart": [
+    "Bevölkerung",
+    "Statistik",
+    "Zeitreihe"
+  ],
   "screenshots": [
     "assets/Desktop_Screenshot_1.png",
     "assets/Desktop_Screenshot_2.png"
@@ -135,7 +145,10 @@
       "format": {
         "typ": "markdown"
       },
-      "default": ["_multiline_", "Alle Daten sind geschützt."],
+      "default": [
+        "_multiline_",
+        "Alle Daten sind geschützt."
+      ],
       "erforderlich": "ja"
     },
     "urlDaten": {
@@ -216,7 +229,9 @@
       "default": "de",
       "format": {
         "typ": "dropdown",
-        "optionen": ["de"]
+        "optionen": [
+          "de"
+        ]
       },
       "erforderlich": "ja"
     },
