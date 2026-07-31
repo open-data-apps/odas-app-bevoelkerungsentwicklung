@@ -578,7 +578,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       const header = visibleFields
         .map(
           (f) =>
-            `<th class="text-nowrap" title="${f}">${toColumnLabel(f)}</th>`,
+            `<th class="text-nowrap" title="${escapeHtml(f)}">${escapeHtml(toColumnLabel(f))}</th>`,
         )
         .join("");
       const rows = pageData
@@ -586,7 +586,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           (r) =>
             "<tr>" +
             visibleFields
-              .map((f) => `<td title="${r[f] ?? ""}">${r[f] ?? ""}</td>`)
+              .map((f) => `<td title="${escapeHtml(r[f] ?? "")}">${escapeHtml(r[f] ?? "")}</td>`)
               .join("") +
             "</tr>",
         )
@@ -718,7 +718,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       .catch((err) => {
         const tableWrap = enclosingHtmlDivElement.querySelector("#odas-table-wrap");
         if (tableWrap) {
-          tableWrap.innerHTML = `<div class="alert alert-danger m-3"><strong>Fehler:</strong> ${err.message}</div>`;
+          tableWrap.innerHTML = `<div class="alert alert-danger m-3"><strong>Fehler:</strong> ${escapeHtml(err.message)}</div>`;
         }
       });
   }
