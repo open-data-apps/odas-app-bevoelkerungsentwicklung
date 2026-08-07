@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.17.0 - 2026-08-07
+- FIX: Bootstrap-Ziele der Methodik-Box instanzeindeutig machen (F-32) — `data-bs-target`, `aria-controls` und die Panel-ID der Methodik-Box tragen jetzt eine Instanzkennung (`-i1`, `-i2`, …); zwei App-Instanzen auf einer Seite kollidieren beim Auf- und Zuklappen der Methodik-Box nicht mehr
+
 ## 1.16.0 - 2026-08-07
 - FIX: Fensterglobale `window._odasChart` durch Instanz-State ersetzt (Bestandsfehler) — das Chart.js-Objekt liegt jetzt in einer Closure-Variable pro App-Instanz statt dokumentweit; mehrere App-Instanzen auf einer Seite zerstören sich gegenseitig nicht mehr und kollidieren auch nicht mit anderen Apps
 

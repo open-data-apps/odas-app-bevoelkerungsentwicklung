@@ -12,6 +12,9 @@
  * @returns {null}
  */
 
+let beInstanzZaehler = 0;
+let beUid = "i1";
+
 // ── Hilfsfunktion: HTML-Escaping für Textfelder ─────────────────────────────
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
@@ -34,12 +37,12 @@ function renderMethodikbox(configdata) {
   return (
     '<section class="be-methodik mt-3">' +
     '<button class="be-methodik-toggle collapsed" type="button" ' +
-    'data-bs-toggle="collapse" data-bs-target="#be-methodik-body" ' +
-    'aria-expanded="false" aria-controls="be-methodik-body">' +
+    'data-bs-toggle="collapse" data-bs-target="#be-methodik-body-' + beUid + '" ' +
+    'aria-expanded="false" aria-controls="be-methodik-body-' + beUid + '">' +
     '<h2 class="h5 mb-0">Methodik &amp; Datenquelle</h2>' +
     '<span class="be-methodik-chevron" aria-hidden="true">&#9662;</span>' +
     "</button>" +
-    '<div id="be-methodik-body" class="collapse">' +
+    '<div id="be-methodik-body-' + beUid + '" class="collapse">' +
     '<div class="be-methodik-content">' +
     standHtml +
     hinweis +
@@ -263,6 +266,7 @@ async function fetchDatenAlsCkan(url, configdata = {}) {
 
 // ── Haupt-App-Funktion ────────────────────────────────────────────────────
 function app(configdata = {}, enclosingHtmlDivElement) {
+  beUid = "i" + ++beInstanzZaehler;
   const apiurl = (configdata.apiurl || "").trim();
   const titel = configdata.titel || "Bevölkerungsentwicklung";
   const PAGE_SIZE = 25;
