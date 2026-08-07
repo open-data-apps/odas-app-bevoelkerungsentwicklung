@@ -266,6 +266,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   const apiurl = (configdata.apiurl || "").trim();
   const titel = configdata.titel || "Bevölkerungsentwicklung";
   const PAGE_SIZE = 25;
+  let odasChart = null;
 
   const preferredFieldOrder = [
     "MONATSZAHL",
@@ -642,8 +643,8 @@ function app(configdata = {}, enclosingHtmlDivElement) {
         const werte = jahre.map((j) => byJahr[j]);
         const canvas = enclosingHtmlDivElement.querySelector("#odas-chart");
         if (canvas) {
-          if (window._odasChart) window._odasChart.destroy();
-          window._odasChart = new Chart(canvas.getContext("2d"), {
+          if (odasChart) odasChart.destroy();
+          odasChart = new Chart(canvas.getContext("2d"), {
             type: "line",
             data: {
               labels: jahre,
