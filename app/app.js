@@ -397,6 +397,17 @@ function app(configdata = {}, enclosingHtmlDivElement) {
 
       if (!pageRecords.length) break;
 
+      // Fallback, falls ein Endpunkt offset ignoriert und immer dieselbe Seite liefert.
+      // Die Wiederholung muss vor dem Übernehmen der Records erkannt werden,
+      // sonst wandern die Records der Wiederholungsseite doppelt in allRecords.
+      if (total === null) {
+        const first = pageRecords[0] || {};
+        const last = pageRecords[pageRecords.length - 1] || {};
+        const pageKey = `${pageRecords.length}:${JSON.stringify(first)}:${JSON.stringify(last)}`;
+        if (seenPageKeys.has(pageKey)) break;
+        seenPageKeys.add(pageKey);
+      }
+
       allRecords.push(...pageRecords);
       offset += pageRecords.length;
       pages += 1;
@@ -408,15 +419,6 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       });
 
       if (total !== null && offset >= total) break;
-
-      // Fallback, falls ein Endpunkt offset ignoriert und immer dieselbe Seite liefert.
-      if (total === null) {
-        const first = pageRecords[0] || {};
-        const last = pageRecords[pageRecords.length - 1] || {};
-        const pageKey = `${pageRecords.length}:${JSON.stringify(first)}:${JSON.stringify(last)}`;
-        if (seenPageKeys.has(pageKey)) break;
-        seenPageKeys.add(pageKey);
-      }
 
       if (pages > 10000) {
         throw new Error("Zu viele Seiten beim Laden der Daten.");

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.19.0 - 2026-08-11
+- FIX: Wiederholungsseite wird vor dem Einfügen erkannt — der seenPageKeys-Fallback in `fetchAllRecordsThroughProxy` prüft die Seitenwiederholung jetzt vor `allRecords.push(...)`, keine doppelten Records bei einem offset-ignorierenden CKAN-Endpunkt ohne `total`
+
 ## 1.18.0 - 2026-08-11
 - FIX: CSV-Parsing auf PapaParse 5.4.1 umgestellt (F-40): `parseCsvToCkan` nutzt jetzt `Papa.parse` mit `header: true`, `skipEmptyLines: "greedy"` und Delimiter-Auto-Detect; gequotete Felder mit Zeilenumbruch werden RFC-4180-konform geparst; PapaParse-Fehler werden als sichtbarer Fehler gemeldet statt still übergangen; `toCkanShape` bleibt unverändert, die Alt-Helfer `parseDelimitedLine`/`detectDelimiter` entfallen
 
