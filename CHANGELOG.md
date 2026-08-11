@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.18.0 - 2026-08-11
+- FIX: CSV-Parsing auf PapaParse 5.4.1 umgestellt (F-40): `parseCsvToCkan` nutzt jetzt `Papa.parse` mit `header: true`, `skipEmptyLines: "greedy"` und Delimiter-Auto-Detect; gequotete Felder mit Zeilenumbruch werden RFC-4180-konform geparst; PapaParse-Fehler werden als sichtbarer Fehler gemeldet statt still übergangen; `toCkanShape` bleibt unverändert, die Alt-Helfer `parseDelimitedLine`/`detectDelimiter` entfallen
+
 ## 1.17.0 - 2026-08-07
 - FIX: Bootstrap-Ziele der Methodik-Box instanzeindeutig machen (F-32) — `data-bs-target`, `aria-controls` und die Panel-ID der Methodik-Box tragen jetzt eine Instanzkennung (`-i1`, `-i2`, …); zwei App-Instanzen auf einer Seite kollidieren beim Auf- und Zuklappen der Methodik-Box nicht mehr
 

@@ -141,6 +141,31 @@ async function fetchOdasJson(targetUrl, configdata = {}) {
   return JSON.parse(await fetchOdasResource(targetUrl, configdata));
 }
 
+// PapaParse (CSV-Parsing) dynamisch aus app/vendor laden; Promise-basiert.
+function ensurePapaparse() {
+  return new Promise((resolve, reject) => {
+    if (window.Papa) {
+      resolve();
+      return;
+    }
+    const vorhanden = document.getElementById("papaparse-script");
+    if (vorhanden) {
+      vorhanden.addEventListener("load", () => resolve());
+      vorhanden.addEventListener("error", () =>
+        reject(new Error("PapaParse konnte nicht geladen werden.")),
+      );
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "papaparse-script";
+    script.src = "vendor/papaparse/papaparse.min.js";
+    script.onload = () => resolve();
+    script.onerror = () =>
+      reject(new Error("PapaParse konnte nicht geladen werden."));
+    document.head.appendChild(script);
+  });
+}
+
 // ── Hilfsfunktion: Ist ein String JSON? ───────────────────────────────────
 function looksLikeJson(text) {
   const t = String(text).trim();
@@ -148,44 +173,6 @@ function looksLikeJson(text) {
 }
 
 // ── CSV-Parser (Fallback falls Proxy CSV liefert) ──────────────────────────
-function parseDelimitedLine(line, delimiter) {
-  const values = [];
-  let current = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === delimiter && !inQuotes) {
-      values.push(current);
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-  values.push(current);
-  return values.map((v) => String(v).trim());
-}
-
-function detectDelimiter(headerLine) {
-  const candidates = [",", ";", "\t", "|"];
-  let best = null,
-    bestCount = -1;
-  candidates.forEach((d) => {
-    const count = headerLine.split(d).length - 1;
-    if (count > bestCount) {
-      best = d;
-      bestCount = count;
-    }
-  });
-  return bestCount > 0 ? best : null;
-}
-
 function toCkanShape(records, headerNames = []) {
   const fieldSet = new Set();
   headerNames.forEach((h) => {
@@ -202,26 +189,32 @@ function toCkanShape(records, headerNames = []) {
 }
 
 function parseCsvToCkan(text) {
-  const cleaned = String(text)
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .trim();
+  const cleaned = String(text).trim();
   if (!cleaned) return toCkanShape([]);
-  const lines = cleaned.split("\n").filter((l) => l.trim().length > 0);
-  if (!lines.length) return toCkanShape([]);
-  const delimiter = detectDelimiter(lines[0]);
-  if (!delimiter) throw new Error("Proxy-Inhalt ist kein erkennbares CSV.");
-  const headers = parseDelimitedLine(lines[0], delimiter).map((h) => h.trim());
+  const ersteZeile = cleaned.split(/\r?\n/, 1)[0];
+  if (!/[,;\t|]/.test(ersteZeile)) {
+    throw new Error("Proxy-Inhalt ist kein erkennbares CSV.");
+  }
+  const result = Papa.parse(cleaned, {
+    header: true,
+    skipEmptyLines: "greedy",
+    transformHeader: (h) => h.trim(),
+  });
+  if (result.errors && result.errors.length > 0) {
+    const err = result.errors[0];
+    throw new Error(
+      `CSV-Parsing-Fehler (Zeile ${err.row + 1}): ${err.message}`,
+    );
+  }
+  const headers = result.meta.fields || [];
   if (!headers.length || headers.every((h) => !h.length))
     throw new Error("CSV-Kopfzeile konnte nicht gelesen werden.");
-  if (lines.length === 1) return toCkanShape([], headers);
-  const records = lines.slice(1).map((line) => {
-    const cells = parseDelimitedLine(line, delimiter);
-    const row = {};
-    headers.forEach((h, idx) => {
-      row[h] = cells[idx] ?? "";
+  const records = result.data.map((row) => {
+    const rec = {};
+    headers.forEach((h) => {
+      rec[h] = row[h] ?? "";
     });
-    return row;
+    return rec;
   });
   return toCkanShape(records, headers);
 }
@@ -374,6 +367,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     batchSize = 5000,
     onProgress = () => {},
   ) {
+    await ensurePapaparse();
     const allRecords = [];
     let allFields = [];
     let offset = 0;
