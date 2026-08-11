@@ -212,7 +212,7 @@ function parseCsvToCkan(text) {
   const records = result.data.map((row) => {
     const rec = {};
     headers.forEach((h) => {
-      rec[h] = row[h] ?? "";
+      rec[h] = (row[h] ?? "").toString().trim();
     });
     return rec;
   });
