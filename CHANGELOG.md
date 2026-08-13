@@ -1,6 +1,9 @@
 # Changelog
 
 
+## 1.21.0 - 2026-08-13
+- FIX: Lifecycle-Ressourcen-Cleanup (F-57): iterierbare `beCleanups`-Map-Registry je Container plus top-level `onPageLeave()` räumen die erzeugte Chart-Instanz beim Seitenwechsel ab; verspätete Fetch-Erfolge/-Fehler nach dem Leave sind über einen `disposed`-Guard wirkungslos (kein Cache-Schreiben/Rendern, keine Fehleranzeige)
+
 ## 1.20.0 - 2026-08-12
 - FIX: `app/index.html` auf den Template-Stand (F-47): Datei byte-gleich aus `oda-generic` übernommen — gültiges HTML, deutsche ARIA-Labels, Footer im Body; Titel und Fußzeile bleiben Platzhalter und werden zur Laufzeit aus der Instanz-Config überschrieben
 

@@ -15,6 +15,24 @@
 let beInstanzZaehler = 0;
 let beUid = "i1";
 
+// Iterierbare Cleanup-Registry (F-57): je gemountetem Container ein Teardown.
+// app/app-base.js ruft onPageLeave() zu Beginn von loadPage() auf; die Registry
+// bleibt bewusst eine echte Map, damit onPageLeave sie durchlaufen und jeden
+// Eintrag löschen kann. odasChart/disposed bleiben lokal je app()-Aufruf; die
+// Cleanup-Closure schließt genau über die jeweilige Instanz.
+var beCleanups = new Map();
+
+function onPageLeave(page) {
+  beCleanups.forEach(function (cleanup, container) {
+    try {
+      cleanup();
+    } catch (error) {
+      console.warn("Fehler beim Abräumen der Bevölkerungsentwicklung-Instanz:", error);
+    }
+    beCleanups.delete(container);
+  });
+}
+
 // ── Hilfsfunktion: HTML-Escaping für Textfelder ─────────────────────────────
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
@@ -264,6 +282,19 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   const titel = configdata.titel || "Bevölkerungsentwicklung";
   const PAGE_SIZE = 25;
   let odasChart = null;
+  let disposed = false;
+
+  // F-57: Cleanup synchron unmittelbar nach den lokalen State-Deklarationen
+  // registrieren, vor jeder Cache-Verarbeitung und jedem Fetch. Beim
+  // Seitenwechsel setzt onPageLeave den disposed-Zustand, räumt exakt
+  // odasChart ab und nullt ihn.
+  beCleanups.set(enclosingHtmlDivElement, function () {
+    disposed = true;
+    if (odasChart) {
+      odasChart.destroy();
+      odasChart = null;
+    }
+  });
 
   const preferredFieldOrder = [
     "MONATSZAHL",
@@ -712,11 +743,13 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   } else {
     fetchAllRecordsThroughProxy(5000, updateLoadProgress)
       .then((json) => {
+        if (disposed) return; // F-57: nach Seitenwechsel nicht mehr in den Cache schreiben/rendern
         if (!json.success) throw new Error("CKAN API Fehler.");
         window._odas_cachedDevelopmentRecordsMap[apiurl] = json;
         processRecords(json);
       })
       .catch((err) => {
+        if (disposed) return; // F-57: nach Seitenwechsel keine Fehleranzeige mehr
         const tableWrap = enclosingHtmlDivElement.querySelector("#odas-table-wrap");
         if (tableWrap) {
           tableWrap.innerHTML = `<div class="alert alert-danger m-3"><strong>Fehler:</strong> ${escapeHtml(err.message)}</div>`;
