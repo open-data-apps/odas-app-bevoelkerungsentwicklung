@@ -35,7 +35,7 @@
     "<p>Alle für die Darstellung benötigten Programmbibliotheken werden mit der App ausgeliefert. Beim Aufruf werden dafür keine externen Server kontaktiert.</p>",
     "<p>Die angezeigten Daten werden über den ODAS-Proxy geladen. Die Anfrage an die Datenquelle stellt der ODAS-Server; Ihre IP-Adresse wird dorthin nicht übermittelt. Maßgeblich ist der Schalter <code>proxyAktiv</code> der Instanz-Konfiguration.</p>"
   ],
-  "urlDaten": "https://open-data-musterstadt.ckan.de/testdaten",
+  "urlDaten": "https://opendata.muenchen.de/dataset/monatszahlen-bevoelkerung",
   "fusszeile": [
     "(C) Copyright 2026 | ",
     "für den Inhalt: Ondics GmbH | ",
