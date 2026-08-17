@@ -13,7 +13,6 @@
  */
 
 let beInstanzZaehler = 0;
-let beUid = "i1";
 
 // Iterierbare Cleanup-Registry (F-57): je gemountetem Container ein Teardown.
 // app/app-base.js ruft onPageLeave() zu Beginn von loadPage() auf; die Registry
@@ -45,7 +44,7 @@ function escapeHtml(str) {
 }
 
 // ── Hilfsfunktion: Methodikbox (TODO 2) ─────────────────────────────────
-function renderMethodikbox(configdata) {
+function renderMethodikbox(configdata, uid) {
   const hinweis = String(configdata.datenquelleHinweis || "").trim();
   const stand = String(configdata.datenStand || "").trim();
   if (!hinweis && !stand) return "";
@@ -55,12 +54,12 @@ function renderMethodikbox(configdata) {
   return (
     '<section class="be-methodik mt-3">' +
     '<button class="be-methodik-toggle collapsed" type="button" ' +
-    'data-bs-toggle="collapse" data-bs-target="#be-methodik-body-' + beUid + '" ' +
-    'aria-expanded="false" aria-controls="be-methodik-body-' + beUid + '">' +
+    'data-bs-toggle="collapse" data-bs-target="#be-methodik-body-' + uid + '" ' +
+    'aria-expanded="false" aria-controls="be-methodik-body-' + uid + '">' +
     '<h2 class="h5 mb-0">Methodik &amp; Datenquelle</h2>' +
     '<span class="be-methodik-chevron" aria-hidden="true">&#9662;</span>' +
     "</button>" +
-    '<div id="be-methodik-body-' + beUid + '" class="collapse">' +
+    '<div id="be-methodik-body-' + uid + '" class="collapse">' +
     '<div class="be-methodik-content">' +
     standHtml +
     hinweis +
@@ -277,7 +276,7 @@ async function fetchDatenAlsCkan(url, configdata = {}) {
 
 // ── Haupt-App-Funktion ────────────────────────────────────────────────────
 function app(configdata = {}, enclosingHtmlDivElement) {
-  beUid = "i" + ++beInstanzZaehler;
+  const beUid = "i" + ++beInstanzZaehler;
   const apiurl = (configdata.apiurl || "").trim();
   const titel = configdata.titel || "Bevölkerungsentwicklung";
   const PAGE_SIZE = 25;
@@ -531,7 +530,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     const dsel = enclosingHtmlDivElement.querySelector("#be-datenstand-wrap");
     if (dsel) dsel.innerHTML = '<div class="text-muted small mb-2">' + escapeHtml(datenStandVal) + '</div>';
   }
-  const methodikHtml = renderMethodikbox(configdata);
+  const methodikHtml = renderMethodikbox(configdata, beUid);
   if (methodikHtml) {
     const mel = enclosingHtmlDivElement.querySelector("#be-methodik-wrap");
     if (mel) mel.innerHTML = methodikHtml;
