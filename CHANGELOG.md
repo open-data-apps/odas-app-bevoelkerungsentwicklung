@@ -1,6 +1,9 @@
 # Changelog
 
 
+## 1.22.0 - 2026-08-17
+- **CHG:** `instanz-config`-`category`-Vokabular auf Deutsch umgestellt (`allgemein`, `beschreibung`, `datenherkunft`, `kontakt-rechtliches`, `sonstiges`); die entfallenen Kategorien `metrics` und `advanced` wurden auf `beschreibung` bzw. `sonstiges` verteilt
+
 ## 1.21.0 - 2026-08-13
 - FIX: Lifecycle-Ressourcen-Cleanup (F-57): iterierbare `beCleanups`-Map-Registry je Container plus top-level `onPageLeave()` räumen die erzeugte Chart-Instanz beim Seitenwechsel ab; verspätete Fetch-Erfolge/-Fehler nach dem Leave sind über einen `disposed`-Guard wirkungslos (kein Cache-Schreiben/Rendern, keine Fehleranzeige)
 
