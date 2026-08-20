@@ -300,6 +300,9 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   const PAGE_SIZE = 25;
   let odasChart = null;
   let disposed = false;
+  // F-73: Zählt Zeilen, deren WERT beim Chart-Aggregieren nicht als Zahl
+  // interpretiert werden konnte und deshalb aus der Jahressumme ausgeschlossen wurden.
+  let verworfeneDatensaetze = 0;
 
   // F-57: Cleanup synchron unmittelbar nach den lokalen State-Deklarationen
   // registrieren, vor jeder Cache-Verarbeitung und jedem Fetch. Beim
@@ -357,10 +360,14 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   }
 
   function updateLoadProgress({ loaded = 0, total = null, pages = 0 }) {
-    const statusEl = enclosingHtmlDivElement.querySelector("#odas-load-status");
-    const barEl = enclosingHtmlDivElement.querySelector("#odas-load-bar");
+    const statusEl = enclosingHtmlDivElement.querySelector(
+      `#odas-load-status-${beUid}`,
+    );
+    const barEl = enclosingHtmlDivElement.querySelector(
+      `#odas-load-bar-${beUid}`,
+    );
     const barLabelEl = enclosingHtmlDivElement.querySelector(
-      "#odas-load-bar-label",
+      `#odas-load-bar-label-${beUid}`,
     );
     if (!statusEl || !barEl || !barLabelEl) return;
 
@@ -389,7 +396,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
 
   if (!apiurl) {
     enclosingHtmlDivElement.innerHTML =
-      '<div class="alert alert-warning m-3">Keine API-URL konfiguriert.</div>';
+      '<div class="alert alert-info m-3" role="alert">Es ist keine Datenquelle konfiguriert.</div>';
     return null;
   }
 
@@ -494,24 +501,24 @@ function app(configdata = {}, enclosingHtmlDivElement) {
         Lizenz: <a href="https://www.govdata.de/dl-de/by-2-0"
            target="_blank" rel="noopener">dl-by-de/2.0</a>
       </p>
-      <div id="be-datenstand-wrap"></div>
+      <div id="be-datenstand-wrap-${beUid}"></div>
 
       <div class="row g-2 mb-3">
         <div class="col-auto">
           <label class="form-label mb-0 small">Thema</label>
-          <select id="odas-filter-thema" class="form-select form-select-sm">
+          <select id="odas-filter-thema-${beUid}" class="form-select form-select-sm">
             <option value="">Alle</option>
           </select>
         </div>
         <div class="col-auto">
           <label class="form-label mb-0 small">Ausprägung</label>
-          <select id="odas-filter-ausp" class="form-select form-select-sm">
+          <select id="odas-filter-ausp-${beUid}" class="form-select form-select-sm">
             <option value="">Alle</option>
           </select>
         </div>
         <div class="col-auto">
           <label class="form-label mb-0 small">Jahr</label>
-          <select id="odas-filter-jahr" class="form-select form-select-sm">
+          <select id="odas-filter-jahr-${beUid}" class="form-select form-select-sm">
             <option value="">Alle</option>
           </select>
         </div>
@@ -519,43 +526,50 @@ function app(configdata = {}, enclosingHtmlDivElement) {
 
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <canvas id="odas-chart" height="80"></canvas>
+          <canvas id="odas-chart-${beUid}" height="80"></canvas>
+          <p class="text-muted small mb-0 mt-2 d-none" id="odas-chart-hinweis-${beUid}"></p>
         </div>
       </div>
 
       <div class="card shadow-sm">
         <div class="card-body p-0">
-          <div id="odas-table-wrap">
+          <div id="odas-table-wrap-${beUid}">
             <div class="p-4">
-              <div class="small text-muted mb-2" id="odas-load-status">Lade Datensätze: 0 geladen (0 Seiten)</div>
+              <div class="small text-muted mb-2" id="odas-load-status-${beUid}">Lade Datensätze: 0 geladen (0 Seiten)</div>
               <div class="progress" role="progressbar" aria-label="Ladefortschritt Datensätze" aria-valuemin="0" aria-valuemax="100">
-                <div id="odas-load-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%" aria-valuenow="0">
-                  <span id="odas-load-bar-label">0</span>
+                <div id="odas-load-bar-${beUid}" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%" aria-valuenow="0">
+                  <span id="odas-load-bar-label-${beUid}">0</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <p class="text-muted small mt-2" id="odas-count"></p>
-      <div id="be-methodik-wrap"></div>
-      <div id="be-weitere-infos-wrap"></div>
+      <p class="text-muted small mt-2" id="odas-count-${beUid}"></p>
+      <div id="be-methodik-wrap-${beUid}"></div>
+      <div id="be-weitere-infos-wrap-${beUid}"></div>
     </div>`;
 
   // Schale 4: Datenfrische-Indikator und Weitere Informationen
   const datenStandVal = String(configdata.datenStand || "").trim();
   if (datenStandVal) {
-    const dsel = enclosingHtmlDivElement.querySelector("#be-datenstand-wrap");
+    const dsel = enclosingHtmlDivElement.querySelector(
+      `#be-datenstand-wrap-${beUid}`,
+    );
     if (dsel) dsel.innerHTML = '<div class="text-muted small mb-2">' + escapeHtml(datenStandVal) + '</div>';
   }
   const methodikHtml = renderMethodikbox(configdata, beUid);
   if (methodikHtml) {
-    const mel = enclosingHtmlDivElement.querySelector("#be-methodik-wrap");
+    const mel = enclosingHtmlDivElement.querySelector(
+      `#be-methodik-wrap-${beUid}`,
+    );
     if (mel) mel.innerHTML = methodikHtml;
   }
   const weitereInfosHtml = renderWeitereInfos(configdata);
   if (weitereInfosHtml) {
-    const wel = enclosingHtmlDivElement.querySelector("#be-weitere-infos-wrap");
+    const wel = enclosingHtmlDivElement.querySelector(
+      `#be-weitere-infos-wrap-${beUid}`,
+    );
     if (wel) wel.innerHTML = weitereInfosHtml;
   }
 
@@ -568,8 +582,10 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     let currentPage = 1;
 
     if (!records || !records.length) {
-      enclosingHtmlDivElement.querySelector("#odas-table-wrap").innerHTML =
-        '<p class="p-3 text-muted">Keine Datensätze gefunden.</p>';
+      enclosingHtmlDivElement.querySelector(
+        `#odas-table-wrap-${beUid}`,
+      ).innerHTML =
+        '<div class="alert alert-info m-3" role="alert">Keine Datensätze gefunden.</div>';
       return;
     }
 
@@ -594,7 +610,11 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     }
 
     // Vor dem Befüllen die alten Optionen entfernen (außer der ersten "Alle" Option)
-    ["#odas-filter-thema", "#odas-filter-ausp", "#odas-filter-jahr"].forEach((id) => {
+    [
+      `#odas-filter-thema-${beUid}`,
+      `#odas-filter-ausp-${beUid}`,
+      `#odas-filter-jahr-${beUid}`,
+    ].forEach((id) => {
       const sel = enclosingHtmlDivElement.querySelector(id);
       if (sel) {
         while (sel.options.length > 1) {
@@ -604,15 +624,15 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     });
 
     fillSelect(
-      "#odas-filter-thema",
+      `#odas-filter-thema-${beUid}`,
       records.map((r) => r["MONATSZAHL"]),
     );
     fillSelect(
-      "#odas-filter-ausp",
+      `#odas-filter-ausp-${beUid}`,
       records.map((r) => r["AUSPRAEGUNG"]),
     );
     fillSelect(
-      "#odas-filter-jahr",
+      `#odas-filter-jahr-${beUid}`,
       records.map((r) => r["JAHR"]),
     );
 
@@ -641,13 +661,15 @@ function app(configdata = {}, enclosingHtmlDivElement) {
         )
         .join("");
 
-      enclosingHtmlDivElement.querySelector("#odas-table-wrap").innerHTML = `
+      enclosingHtmlDivElement.querySelector(
+        `#odas-table-wrap-${beUid}`,
+      ).innerHTML = `
         <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center px-3 pt-3 pb-2">
           <div class="small text-muted">Zeige ${data.length === 0 ? 0 : pageStart + 1}–${Math.min(pageStart + PAGE_SIZE, data.length)} von ${data.length} Datensätzen</div>
           <div class="btn-group btn-group-sm" role="group" aria-label="Tabellen-Paginierung">
-            <button class="btn btn-outline-secondary" id="odas-prev-page" ${currentPage === 1 ? "disabled" : ""}>Zurück</button>
-            <button class="btn btn-outline-secondary disabled" id="odas-page-info">Seite ${currentPage}/${totalPages}</button>
-            <button class="btn btn-outline-secondary" id="odas-next-page" ${currentPage === totalPages ? "disabled" : ""}>Weiter</button>
+            <button class="btn btn-outline-secondary" id="odas-prev-page-${beUid}" ${currentPage === 1 ? "disabled" : ""}>Zurück</button>
+            <button class="btn btn-outline-secondary disabled" id="odas-page-info-${beUid}">Seite ${currentPage}/${totalPages}</button>
+            <button class="btn btn-outline-secondary" id="odas-next-page-${beUid}" ${currentPage === totalPages ? "disabled" : ""}>Weiter</button>
           </div>
         </div>
         <div class="table-responsive odas-table-responsive">
@@ -657,13 +679,16 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           </table>
         </div>`;
 
-      enclosingHtmlDivElement.querySelector("#odas-count").textContent =
-        `${data.length} Datensätze.`;
+      enclosingHtmlDivElement.querySelector(
+        `#odas-count-${beUid}`,
+      ).textContent = `${data.length} Datensätze.`;
 
-      const prevBtn =
-        enclosingHtmlDivElement.querySelector("#odas-prev-page");
-      const nextBtn =
-        enclosingHtmlDivElement.querySelector("#odas-next-page");
+      const prevBtn = enclosingHtmlDivElement.querySelector(
+        `#odas-prev-page-${beUid}`,
+      );
+      const nextBtn = enclosingHtmlDivElement.querySelector(
+        `#odas-next-page-${beUid}`,
+      );
       if (prevBtn)
         prevBtn.addEventListener("click", () => {
           if (currentPage > 1) {
@@ -682,14 +707,34 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       // Chart: WERT nach JAHR (Jahressumme)
       if (typeof Chart !== "undefined") {
         const byJahr = {};
+        // F-73: Zeilen ohne gültigen WERT zählen statt sie kommentarlos zu verwerfen.
+        verworfeneDatensaetze = 0;
         data.forEach((r) => {
           const j = r["JAHR"];
           const v = parseFloat(String(r["WERT"] || "0").replace(",", "."));
-          if (j && !isNaN(v)) byJahr[j] = (byJahr[j] || 0) + v;
+          if (isNaN(v)) {
+            verworfeneDatensaetze += 1;
+            return;
+          }
+          if (j) byJahr[j] = (byJahr[j] || 0) + v;
         });
         const jahre = Object.keys(byJahr).sort();
         const werte = jahre.map((j) => byJahr[j]);
-        const canvas = enclosingHtmlDivElement.querySelector("#odas-chart");
+        const hinweisEl = enclosingHtmlDivElement.querySelector(
+          `#odas-chart-hinweis-${beUid}`,
+        );
+        if (hinweisEl) {
+          if (verworfeneDatensaetze > 0) {
+            hinweisEl.textContent = `${verworfeneDatensaetze} von ${data.length} Datensätzen ohne gültigen Wert wurden nicht berücksichtigt.`;
+            hinweisEl.classList.remove("d-none");
+          } else {
+            hinweisEl.textContent = "";
+            hinweisEl.classList.add("d-none");
+          }
+        }
+        const canvas = enclosingHtmlDivElement.querySelector(
+          `#odas-chart-${beUid}`,
+        );
         if (canvas) {
           if (odasChart) odasChart.destroy();
           odasChart = new Chart(canvas.getContext("2d"), {
@@ -722,14 +767,14 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     // ── Filter-Logik ───────────────────────────────────────────────────
     function getFiltered() {
       const fT =
-        enclosingHtmlDivElement.querySelector("#odas-filter-thema")?.value ||
-        "";
+        enclosingHtmlDivElement.querySelector(`#odas-filter-thema-${beUid}`)
+          ?.value || "";
       const fA =
-        enclosingHtmlDivElement.querySelector("#odas-filter-ausp")?.value ||
-        "";
+        enclosingHtmlDivElement.querySelector(`#odas-filter-ausp-${beUid}`)
+          ?.value || "";
       const fJ =
-        enclosingHtmlDivElement.querySelector("#odas-filter-jahr")?.value ||
-        "";
+        enclosingHtmlDivElement.querySelector(`#odas-filter-jahr-${beUid}`)
+          ?.value || "";
       return records.filter(
         (r) =>
           (!fT || String(r["MONATSZAHL"]) === fT) &&
@@ -738,16 +783,18 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       );
     }
 
-    ["#odas-filter-thema", "#odas-filter-ausp", "#odas-filter-jahr"].forEach(
-      (id) => {
-        const el = enclosingHtmlDivElement.querySelector(id);
-        if (el)
-          el.addEventListener("change", () => {
-            currentPage = 1;
-            render(getFiltered());
-          });
-      },
-    );
+    [
+      `#odas-filter-thema-${beUid}`,
+      `#odas-filter-ausp-${beUid}`,
+      `#odas-filter-jahr-${beUid}`,
+    ].forEach((id) => {
+      const el = enclosingHtmlDivElement.querySelector(id);
+      if (el)
+        el.addEventListener("change", () => {
+          currentPage = 1;
+          render(getFiltered());
+        });
+    });
 
     // Erstmals rendern
     render(records);
@@ -767,7 +814,9 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       })
       .catch((err) => {
         if (disposed) return; // F-57: nach Seitenwechsel keine Fehleranzeige mehr
-        const tableWrap = enclosingHtmlDivElement.querySelector("#odas-table-wrap");
+        const tableWrap = enclosingHtmlDivElement.querySelector(
+          `#odas-table-wrap-${beUid}`,
+        );
         if (tableWrap) {
           tableWrap.innerHTML = `<div class="alert alert-danger m-3"><strong>Fehler:</strong> ${escapeHtml(err.message)}</div>`;
         }
