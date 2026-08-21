@@ -3,7 +3,7 @@
   "app-entwickler-name": "ondics-gmbh",
   "name-in-url": "bevoelkerungsentwicklung",
   "name": "Bevölkerungsentwicklung",
-  "version": "1.25.0",
+  "version": "1.26.0",
   "odas-app-icon": "assets/odas-app-icon.svg",
   "app-icon": "assets/odas-app-icon.svg",
   "kurzbeschreibung": "Visualisiert Monatszahlen zur Bevölkerung mit Filtern, Tabelle und Jahres-Chart.",
@@ -15,7 +15,7 @@
     "",
     "## Methodik",
     "",
-    "Die App ruft den konfigurierten CKAN-Datastore-Endpunkt (`apiurl`) seitenweise ab – bis zu 5000 Datensätze je Seite über den bestehenden Ressourcen-/Proxy-Pfad (`/odp-data?path=...` bei `proxyAktiv: ja`, sonst direkt) – und normalisiert die Antworten im Browser.",
+    "Die App ruft den konfigurierten CKAN-Datastore-Endpunkt (`apiurls.bevoelkerung`) seitenweise ab – bis zu 5000 Datensätze je Seite über den bestehenden Ressourcen-/Proxy-Pfad (`/odp-data?path=...` bei `proxyAktiv: ja`, sonst direkt) – und normalisiert die Antworten im Browser.",
     "",
     "Erwartetes CKAN-JSON (`result.records`/`result.fields` mit `total`) wird direkt übernommen; liefert die Quelle unterstütztes CSV, wird es über PapaParse in dieselbe Struktur überführt.",
     "",
@@ -137,7 +137,7 @@
         "",
         "## Methodik",
         "",
-        "Die App ruft den konfigurierten CKAN-Datastore-Endpunkt (`apiurl`) seitenweise ab – bis zu 5000 Datensätze je Seite über den bestehenden Ressourcen-/Proxy-Pfad (`/odp-data?path=...` bei `proxyAktiv: ja`, sonst direkt) – und normalisiert die Antworten im Browser.",
+        "Die App ruft den konfigurierten CKAN-Datastore-Endpunkt (`apiurls.bevoelkerung`) seitenweise ab – bis zu 5000 Datensätze je Seite über den bestehenden Ressourcen-/Proxy-Pfad (`/odp-data?path=...` bei `proxyAktiv: ja`, sonst direkt) – und normalisiert die Antworten im Browser.",
         "",
         "Erwartetes CKAN-JSON (`result.records`/`result.fields` mit `total`) wird direkt übernommen; liefert die Quelle unterstütztes CSV, wird es über PapaParse in dieselbe Struktur überführt.",
         "",
@@ -253,17 +253,24 @@
       },
       "erforderlich": "ja"
     },
-    "apiurl": {
-      "label": "URL zu den Daten",
+    "apiurls": {
+      "label": "URLs zu Datenressourcen",
       "category": "datenherkunft",
-      "hilfe": "Von dieser URL zum CKAN-Datastore werden die Daten über den lokalen Proxy-Endpunkt /odp-data geladen",
+      "hilfe": "Direkter Download-, Datei- oder API-Endpunkt der tatsächlich verwendeten Datenquelle(n). Mehrere Einträge möglich.",
+      "typ": "array",
       "format": {
         "typ": "url",
-        "laenge": 255
+        "laenge": 500
       },
-      "default": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f",
-      "beispiel": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f",
-      "erforderlich": "ja"
+      "urls": [
+        {
+          "name": "bevoelkerung",
+          "label": "URL zu den Daten",
+          "default": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f",
+          "beispiel": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f",
+          "erforderlich": "ja"
+        }
+      ]
     },
     "datenStand": {
       "label": "Datenstand",

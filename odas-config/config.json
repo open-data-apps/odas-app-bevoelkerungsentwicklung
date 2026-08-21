@@ -9,7 +9,7 @@
     "<p>Die App visualisiert Monatszahlen zur Bevölkerung und macht langfristige Entwicklungen als Diagramm und Tabelle nachvollziehbar.</p>",
     "<p>Filter und Zeitachsen helfen dabei, Veränderungen über Jahre hinweg einzuordnen.</p>",
     "<h2>Methodik</h2>",
-    "<p>Die App ruft den konfigurierten CKAN-Datastore-Endpunkt (<code>apiurl</code>) seitenweise ab – bis zu 5000 Datensätze je Seite über den bestehenden Ressourcen-/Proxy-Pfad (<code>/odp-data?path=...</code> bei <code>proxyAktiv: ja</code>, sonst direkt) – und normalisiert die Antworten im Browser.</p>",
+    "<p>Die App ruft den konfigurierten CKAN-Datastore-Endpunkt (<code>apiurls.bevoelkerung</code>) seitenweise ab – bis zu 5000 Datensätze je Seite über den bestehenden Ressourcen-/Proxy-Pfad (<code>/odp-data?path=...</code> bei <code>proxyAktiv: ja</code>, sonst direkt) – und normalisiert die Antworten im Browser.</p>",
     "<p>Erwartetes CKAN-JSON (<code>result.records</code>/<code>result.fields</code> mit <code>total</code>) wird direkt übernommen; liefert die Quelle unterstütztes CSV, wird es über PapaParse in dieselbe Struktur überführt.</p>",
     "<p>Wenn die Quelle keinen <code>total</code>-Zähler liefert, erkennt die App wiederholte Seiten über Schlüssel aus Datensatzanzahl sowie erstem und letztem Datensatz und beendet das Nachladen.</p>",
     "<p>Datensätze lassen sich clientseitig nach Thema und Ausprägung (<code>MONATSZAHL</code>, <code>AUSPRAEGUNG</code>) sowie Jahr (<code>JAHR</code>) filtern; die gefilterte Auswahl wird paginiert in der Tabelle angezeigt.</p>",
@@ -45,7 +45,13 @@
     "App-Entwickler: Ondics GmbH | ",
     "Provided by: Ondics GmbH"
   ],
-  "apiurl": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f",
+  "apiurls": [
+    {
+      "name": "bevoelkerung",
+      "label": "URL zu den Daten",
+      "url": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f"
+    }
+  ],
   "sprache": "de",
   "datenStand": "Datenstand: 2023",
   "datenquelleHinweis": "Die Bevölkerungsdaten werden über die CKAN Datastore API geladen. Alle Datensätze werden paginiert abgerufen (5000 pro Seite) und im Browser zwischengespeichert. Das Liniendiagramm zeigt die Jahressummen, gruppiert nach dem ausgewählten Thema und der Ausprägung. Die Proxy-URL wird mit mehreren Fallback-Kandidaten aufgelöst.",

@@ -63,7 +63,7 @@ App läuft auf http://localhost:8089 (Konfiguration wird lokal geladen).
 
 | Parameter     | Beschreibung                                                            | Pflicht |
 | ------------- | ----------------------------------------------------------------------- | ------- |
-| `apiurl`      | CKAN Datastore-URL (inkl. `resource_id`), wird über `/odp-data` geladen | ja      |
+| `apiurls`     | URLs zu Datenressourcen. Eintrag `bevoelkerung`: CKAN Datastore-URL (inkl. `resource_id`), wird über `/odp-data` geladen | ja (Eintrag `bevoelkerung`) |
 | `urlDaten`    | URL zur Datensatzseite im Open Data Portal                              | ja      |
 | `titel`       | Anzeigetitel im Inhaltsbereich                                          | ja      |
 | `seitentitel` | Browser-Tab-Titel                                                       | ja      |
@@ -110,7 +110,7 @@ dem EntryPoint `websecure` und dem Zertifikatsresolver `letsencrypt`.
    wird `ja`. Der ODAS-Proxy `…/odp-data` steht im Standalone-Container nicht zur
    Verfuegung; die mitgelieferte `nginx.conf` kennt keinen entsprechenden
    `location`-Block.
-3. Die Datenquelle (`apiurl`) auf eine CORS-freigegebene Ressource umstellen. Die
+3. Die Datenquelle (`apiurls.bevoelkerung`) auf eine CORS-freigegebene Ressource umstellen. Die
    mitgelieferte Quelle (`opendata.muenchen.de`) sendet keinen
    `Access-Control-Allow-Origin`-Header und ist standalone **nicht** nutzbar.
 4. Starten:
