@@ -3,7 +3,7 @@
   "app-entwickler-name": "ondics-gmbh",
   "name-in-url": "bevoelkerungsentwicklung",
   "name": "Bevölkerungsentwicklung",
-  "app-version": "1.28.0",
+  "app-version": "1.28.1",
   "app-package-version": "2",
   "odas-app-icon": "assets/odas-app-icon.svg",
   "app-icon": "assets/odas-app-icon.svg",
@@ -66,8 +66,8 @@
   "daten": {
     "beschreibung": "Die App verarbeitet Datensätze aus einem CKAN-Datastore-Endpunkt (JSON) und visualisiert Werte über die Zeit.",
     "schema": "assets/schema.json",
-    "beispiel": "",
-    "beispiel-url": ""
+    "beispiel": "CKAN-Datastore-Antwort mit result.records[]/result.fields[] und total (JSON).",
+    "beispiel-url": "https://opendata.muenchen.de/api/3/action/datastore_search?resource_id=2252dc7c-265b-4f21-aa0e-b602c30cb85f&limit=5"
   },
   "branding-css": "",
   "api-version": "1",
@@ -225,8 +225,8 @@
       "format": {
         "typ": "url"
       },
-      "default": "",
-      "beispiel": "",
+      "default": "https://opendata.muenchen.de/dataset/monatszahlen-bevoelkerung",
+      "beispiel": "https://opendata.muenchen.de/dataset/monatszahlen-bevoelkerung",
       "erforderlich": "ja"
     },
     "fusszeile": {

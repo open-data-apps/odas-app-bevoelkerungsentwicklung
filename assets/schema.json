@@ -1,78 +1,88 @@
 {
   "$schema": "https://frictionlessdata.io/schemas/table-schema.json",
-  "name": "odas-app-bevölkerungsentwicklung",
+  "name": "odas-app-bevoelkerungsentwicklung",
   "title": "Bevölkerungsentwicklung",
   "fields": [
     {
       "name": "MONATSZAHL",
+      "title": "Thema (Monatszahl)",
       "type": "string",
-      "description": "Wird in der App verwendet",
+      "description": "Thema der Monatszahl, z. B. Altersgruppen.",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "AUSPRAEGUNG",
+      "title": "Ausprägung",
       "type": "string",
-      "description": "Wird in der App verwendet",
+      "description": "Ausprägung innerhalb des Themas, z. B. eine Altersgruppe.",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "JAHR",
-      "type": "string",
-      "description": "Wird in der App verwendet",
+      "title": "Jahr",
+      "type": "year",
+      "description": "Kalenderjahr als vierstellige Zahl.",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "MONAT",
-      "type": "string",
-      "description": "Wird in der App verwendet",
+      "title": "Monat (JJJJMM)",
+      "type": "yearmonth",
+      "format": "%Y%m",
+      "description": "Berichtsmonat als sechsstellige Zahl JJJJMM.",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "WERT",
-      "type": "string",
-      "description": "Wird in der App verwendet",
+      "title": "Wert",
+      "type": "number",
+      "description": "Gemessener Monatswert (z. B. Einwohnerzahl).",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "VORJAHRESWERT",
-      "type": "string",
-      "description": "Wird in der App verwendet",
+      "title": "Vorjahreswert",
+      "type": "number",
+      "description": "Wert des Vorjahresmonats.",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "VERAEND_VORMONAT_PROZENT",
-      "type": "string",
-      "description": "Wird in der App verwendet",
+      "title": "Veränderung zum Vormonat (%)",
+      "type": "number",
+      "description": "Prozentuale Veränderung gegenüber dem Vormonat.",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "VERAEND_VORJAHRESMONAT_PROZENT",
-      "type": "string",
-      "description": "Wird in der App verwendet",
+      "title": "Veränderung zum Vorjahresmonat (%)",
+      "type": "number",
+      "description": "Prozentuale Veränderung gegenüber dem Vorjahresmonat.",
       "constraints": {
-        "required": true
+        "required": false
       }
     },
     {
       "name": "ZWOELF_MONATE_MITTELWERT",
-      "type": "string",
-      "description": "Wird in der App verwendet",
+      "title": "12-Monate-Mittelwert",
+      "type": "number",
+      "description": "Mittelwert der letzten zwölf Monate.",
       "constraints": {
-        "required": true
+        "required": false
       }
     }
   ]
