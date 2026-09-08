@@ -1,7 +1,9 @@
 # Changelog
 
-## 1.28.1 - 2026-09-07
+## 1.28.2 - 2026-09-08
 - **FIX:** Variante-A-Verdrahtung (F-92): `validateUrlTypErwartung` vor dem ersten Fetch (ckan-dkan-ds) und `renderOdasFehler` im Catch-Pfad; Fixture des Lifecycle-Tests auf `datastore_search?resource_id=` umgestellt. (1.28.1 -> 1.28.2)
+
+## 1.28.1 - 2026-09-07
 - **FIX:** Frictionless-Härtung: `assets/schema.json` mit Titeln, echten Typen (`year`/`yearmonth`/`number`) und Fachbeschreibungen; `daten.beispiel`/`beispiel-url` befüllt; `urlDaten`-Default gesetzt. JSON-Default bleibt (4B-Entscheid): CKAN-Hülle ist per Store-Validator nicht grün validierbar, dokumentierte Ausnahme.
 
 ## 1.28.0 - 2026-08-25
