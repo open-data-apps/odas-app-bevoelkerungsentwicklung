@@ -486,6 +486,18 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     }
   });
 
+  // Variante A (F-92): Typ- und Quellenpruefung VOR dem ersten Fetch.
+  const beLabel = "Bevoelkerungstabellen-API";
+  if (isKeineDatenquelleKonfiguriert(apiurl)) {
+    renderOdasFehler(enclosingHtmlDivElement, new Error("Keine Datenquelle konfiguriert."), { url: apiurl, label: beLabel, typLabel: "Tabellen-API mit Daten-ID", erwarteterTyp: "ckan-dkan-ds" });
+    return null;
+  }
+  const beTypWarn = validateUrlTypErwartung(apiurl, "ckan-dkan-ds");
+  if (beTypWarn) {
+    renderOdasFehler(enclosingHtmlDivElement, new Error(beTypWarn), { url: apiurl, label: beLabel, typLabel: "Tabellen-API mit Daten-ID", erwarteterTyp: "ckan-dkan-ds" });
+    return null;
+  }
+
   const preferredFieldOrder = [
     "MONATSZAHL",
     "AUSPRAEGUNG",
@@ -988,7 +1000,12 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           `#odas-table-wrap-${beUid}`,
         );
         if (tableWrap) {
-          tableWrap.innerHTML = `<div class="alert alert-danger m-3"><strong>Fehler:</strong> ${escapeHtml(err.message)}</div>`;
+          renderOdasFehler(tableWrap, err, {
+            url: apiurl,
+            label: "Bevölkerungstabellen-API",
+            typLabel: "Tabellen-API mit Daten-ID",
+            erwarteterTyp: "ckan-dkan-ds",
+          });
         }
       });
   }
