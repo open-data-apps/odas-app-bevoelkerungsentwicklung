@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.28.3 - 2026-09-10
+- **FIX:** Same-Page-Re-Render räumt Vorgänger-Instanz ab (BE-B1) — die alte Chart-Instanz leakt nicht mehr.
+- **FIX:** Daten-Cache ist instanzlokal statt fensterglobal (BE-B2). `window._odas_cachedDevelopmentRecordsMap` war der letzte `window`-Cache im Portfolio.
+- **FIX:** Chart.js wird per Loader mit `onload`/`onerror` geladen (BE-B3). Vorher hing es statisch in `addToHead()` ohne Fehlerpfad: fehlte die Bibliothek beim ersten Render, fehlte das Diagramm dauerhaft und ohne Hinweis. Jetzt gibt es Wartezustand und Fehlermeldung.
+- **FIX:** Deutsche Zahlformate werden korrekt gelesen (BE-B4): `1.234,5` ergab vorher still `1.234`. Zeilen ohne gültigen Wert werden dabei als verworfen gezählt (F-73) statt zu `0` zu werden.
+- **FIX:** Laufender Seitenabruf ist per `AbortController` abbrechbar (BE-B5); `fetchOdasResource` reicht `signal` durch und wirft `AbortError` unverpackt.
+- **TECH:** `isLeerErgebnis` entfernt; PapaParse wird nur noch geladen, wenn die Antwort wirklich CSV ist (BE-B7); `addToHead` gibt `""` zurück. `fetchOdasJson` (helpercheck-Vertrag) und der `!apiurl`-Zweig (String-Vertrag von `check-three-states`) bleiben bewusst erhalten.
+
 ## 1.28.2 - 2026-09-08
 - **FIX:** Variante-A-Verdrahtung (F-92): `validateUrlTypErwartung` vor dem ersten Fetch (ckan-dkan-ds) und `renderOdasFehler` im Catch-Pfad; Fixture des Lifecycle-Tests auf `datastore_search?resource_id=` umgestellt. (1.28.1 -> 1.28.2)
 

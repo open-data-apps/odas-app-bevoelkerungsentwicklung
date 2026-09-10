@@ -13,8 +13,9 @@ Interaktive Visualisierung von Monatszahlen zur Bevölkerung für den [Open Data
 Single Page Application mit Logo, Menü, Impressum/Datenschutz/Kontakt-Seiten und Fußzeile. Die Konfiguration wird vom ODAS geladen. Inhalte:
 
 - Filter nach Thema (`MONATSZAHL`), Ausprägung (`AUSPRAEGUNG`) und Jahr (`JAHR`)
-- Tabellarische Anzeige der CKAN-Datensätze (max. 500 Zeilen in der Tabelle)
-- Linienchart mit Jahressummen für `WERT`
+- Tabellarische Anzeige der CKAN-Datensätze mit Seitenblätterung (25 je Seite)
+- Linienchart mit Jahressummen für `WERT`; wird Chart.js verzögert oder nicht geladen, erscheint ein Hinweis statt eines stillschweigend fehlenden Diagramms
+- Zeilen ohne gültigen Wert werden gezählt und ausgewiesen statt still mit 0 gerechnet
 - Robuster Datenabruf über lokalen Proxy-Endpunkt `/odp-data`
 
 ---

@@ -147,18 +147,20 @@ async function fetchViaOdasProxy(targetUrl, options = {}) {
   return proxyData.content;
 }
 
-async function fetchOdasResource(targetUrl, configdata = {}) {
+async function fetchOdasResource(targetUrl, configdata = {}, options = {}) {
   if (isOdasProxyEnabled(configdata)) {
-    return fetchViaOdasProxy(targetUrl);
+    return fetchViaOdasProxy(targetUrl, options);
   }
 
   try {
-    const response = await fetch(targetUrl);
+    const response = await fetch(targetUrl, { signal: options.signal });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
     return response.text();
   } catch (error) {
+    // Abbruch ist kein Fehlerfall (BE-B5).
+    if (error && error.name === "AbortError") throw error;
     throw new Error(
       `Direkter Datenabruf fehlgeschlagen (${error.message}). Bitte prüfen Sie die Daten-URL und die CORS-Freigabe der Datenquelle.`,
     );
@@ -336,15 +338,6 @@ function renderOdasFehler(container, error, kontext = {}) {
   container.innerHTML = `<div class="alert ${alertClass}" role="alert"><strong>${escapeHtml(titel)}</strong><p class="mb-1">${escapeHtml(info.hinweis)}</p>${urlZeile}<details class="small"><summary>Details</summary><code>${escapeHtml(info.detail || String(error))}</code></details></div>`;
 }
 
-function isLeerErgebnis(json) {
-  if (!json) return true;
-  if (Array.isArray(json) && json.length === 0) return true;
-  if (Array.isArray(json.records) && json.records.length === 0) return true;
-  if (Array.isArray(json.results) && json.results.length === 0) return true;
-  if (json.result && Array.isArray(json.result.records) && json.result.records.length === 0) return true;
-  return false;
-}
-
 
 // PapaParse (CSV-Parsing) dynamisch aus app/vendor laden; Promise-basiert.
 function ensurePapaparse() {
@@ -369,6 +362,23 @@ function ensurePapaparse() {
       reject(new Error("PapaParse konnte nicht geladen werden."));
     document.head.appendChild(script);
   });
+}
+
+// BE-B4: Deutsche Zahlformate korrekt lesen. Vorher machte
+// parseFloat(..replace(",", ".")) aus „1.234,5" still 1.234.
+function parseWert(value) {
+  if (typeof value === "number") return value;
+  let s = String(value == null ? "" : value).trim();
+  if (!s) return NaN;
+  s = s.replace(/\s/g, "");
+  if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+    return parseFloat(s.replace(/\./g, "").replace(",", "."));
+  }
+  if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) {
+    return parseFloat(s.replace(/,/g, ""));
+  }
+  if (/^-?\d+,\d+$/.test(s)) return parseFloat(s.replace(",", "."));
+  return parseFloat(s);
 }
 
 // ── Hilfsfunktion: Ist ein String JSON? ───────────────────────────────────
@@ -458,8 +468,13 @@ function parseDatenAntwort(responseText) {
 }
 
 // ── Daten laden: direkt oder ueber den ODAS-Proxy (proxyAktiv) ─────────────
-async function fetchDatenAlsCkan(url, configdata = {}) {
-  return parseDatenAntwort(await fetchOdasResource(url, configdata));
+async function fetchDatenAlsCkan(url, configdata = {}, signal) {
+  const text = await fetchOdasResource(url, configdata, { signal });
+  const trimmed = String(text).trim();
+  // BE-B7: PapaParse nur laden, wenn die Antwort tatsächlich CSV ist — bei
+  // JSON-Antworten war der Ladewunsch bisher unnötig.
+  if (trimmed && !looksLikeJson(trimmed)) await ensurePapaparse();
+  return parseDatenAntwort(trimmed);
 }
 
 // ── Haupt-App-Funktion ────────────────────────────────────────────────────
@@ -473,13 +488,32 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   // F-73: Zählt Zeilen, deren WERT beim Chart-Aggregieren nicht als Zahl
   // interpretiert werden konnte und deshalb aus der Jahressumme ausgeschlossen wurden.
   let verworfeneDatensaetze = 0;
+  // BE-B2: Daten-Cache je Instanz statt fensterglobal (F-55-Klasse).
+  const datenCache = {};
+  // BE-B3: Zustand des Chart.js-Laders.
+  let chartLadeLaeuft = false;
+  let chartFehler = false;
+  let letzteRenderDaten = [];
+  let loadController = null; // BE-B5: laufender Seitenabruf ist abbrechbar
 
   // F-57: Cleanup synchron unmittelbar nach den lokalen State-Deklarationen
   // registrieren, vor jeder Cache-Verarbeitung und jedem Fetch. Beim
   // Seitenwechsel setzt onPageLeave den disposed-Zustand, räumt exakt
   // odasChart ab und nullt ihn.
+  // BE-B1: Vorgänger-Instanz desselben Containers zuerst abräumen — sonst leakt
+  // bei Same-Page-Re-Render die alte Chart-Instanz.
+  const beVorherigerCleanup = beCleanups.get(enclosingHtmlDivElement);
+  if (beVorherigerCleanup) {
+    try {
+      beVorherigerCleanup();
+    } catch (_e) {}
+  }
   beCleanups.set(enclosingHtmlDivElement, function () {
     disposed = true;
+    if (loadController) {
+      loadController.abort();
+      loadController = null;
+    }
     if (odasChart) {
       odasChart.destroy();
       odasChart = null;
@@ -603,8 +637,8 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   async function fetchAllRecordsThroughProxy(
     batchSize = 5000,
     onProgress = () => {},
+    signal,
   ) {
-    await ensurePapaparse();
     const allRecords = [];
     let allFields = [];
     let offset = 0;
@@ -618,6 +652,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       const json = await fetchDatenAlsCkan(
         buildUrl(batchSize, offset),
         configdata,
+        signal,
       );
       if (!json.success) throw new Error("CKAN API Fehler.");
 
@@ -708,6 +743,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
 
       <div class="card shadow-sm mb-3">
         <div class="card-body">
+          <p class="text-muted small mb-2 d-none" id="odas-chart-status-${beUid}" role="status"></p>
           <canvas id="odas-chart-${beUid}" height="80"></canvas>
           <p class="text-muted small mb-0 mt-2 d-none" id="odas-chart-hinweis-${beUid}"></p>
         </div>
@@ -886,14 +922,46 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           }
         });
 
-      // Chart: WERT nach JAHR (Jahressumme)
-      if (typeof Chart !== "undefined") {
+      letzteRenderDaten = data;
+      renderChart(data);
+    }
+
+    // Chart: WERT nach JAHR (Jahressumme) — aus render() ausgelagert (BE-B3).
+    function renderChart(data) {
+      // Chart.js erst bei Bedarf laden: mit Wartezustand und Fehlerpfad,
+      // statt das Diagramm stillschweigend wegzulassen.
+      if (typeof Chart === "undefined") {
+        if (chartFehler) {
+          zeigeChartStatus("Diagramm konnte nicht geladen werden.", "fehler");
+          return;
+        }
+        if (!chartLadeLaeuft) {
+          chartLadeLaeuft = true;
+          zeigeChartStatus("Diagramm wird geladen \u2026", "info");
+          ladeChartJs().then(
+            function () {
+              chartLadeLaeuft = false;
+              if (disposed) return;
+              zeigeChartStatus("", "");
+              renderChart(letzteRenderDaten);
+            },
+            function () {
+              chartLadeLaeuft = false;
+              chartFehler = true;
+              if (disposed) return;
+              zeigeChartStatus("Diagramm konnte nicht geladen werden.", "fehler");
+            },
+          );
+        }
+        return;
+      }
+      {
         const byJahr = {};
         // F-73: Zeilen ohne gültigen WERT zählen statt sie kommentarlos zu verwerfen.
         verworfeneDatensaetze = 0;
         data.forEach((r) => {
           const j = r["JAHR"];
-          const v = parseFloat(String(r["WERT"] || "0").replace(",", "."));
+          const v = parseWert(r["WERT"]);
           if (isNaN(v)) {
             verworfeneDatensaetze += 1;
             return;
@@ -982,16 +1050,68 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     render(records);
   }
 
+  // ── Chart.js dynamisch laden (BE-B3) ───────────────────────────────────
+  // Vorher hing Chart.js statisch in addToHead() ohne onload/onerror; fehlte
+  // die Bibliothek beim ersten Render, fehlte das Diagramm dauerhaft und ohne
+  // Hinweis. Jetzt: Loader mit Rückmeldung, Wartezustand und Fehlerpfad.
+  function ladeChartJs() {
+    return new Promise(function (resolve, reject) {
+      if (typeof Chart !== "undefined") {
+        resolve();
+        return;
+      }
+      const src = "vendor/chartjs/chart.umd.min.js";
+      const fehler = function () {
+        reject(new Error("Chart.js konnte nicht geladen werden."));
+      };
+      const vorhanden = document.querySelector('script[src="' + src + '"]');
+      if (vorhanden) {
+        if (vorhanden.beGeladen) {
+          resolve();
+          return;
+        }
+        vorhanden.addEventListener("load", function () { resolve(); });
+        vorhanden.addEventListener("error", fehler);
+        return;
+      }
+      const script = document.createElement("script");
+      script.id = "odas-chartjs-script";
+      script.src = src;
+      script.onload = function () {
+        script.beGeladen = true;
+        resolve();
+      };
+      script.onerror = fehler;
+      document.head.appendChild(script);
+    });
+  }
+
+  function zeigeChartStatus(text, art) {
+    const el = enclosingHtmlDivElement.querySelector(
+      `#odas-chart-status-${beUid}`,
+    );
+    if (!el) return;
+    if (!text) {
+      el.textContent = "";
+      el.classList.add("d-none");
+      el.classList.remove("text-danger");
+      return;
+    }
+    el.textContent = text;
+    el.classList.remove("d-none");
+    el.classList.toggle("text-danger", art === "fehler");
+  }
+
   // ── Daten laden ────────────────────────────────────────────────────────
-  window._odas_cachedDevelopmentRecordsMap = window._odas_cachedDevelopmentRecordsMap || {};
-  if (window._odas_cachedDevelopmentRecordsMap[apiurl]) {
-    processRecords(window._odas_cachedDevelopmentRecordsMap[apiurl]);
+  if (datenCache[apiurl]) {
+    processRecords(datenCache[apiurl]);
   } else {
-    fetchAllRecordsThroughProxy(5000, updateLoadProgress)
+    loadController = new AbortController();
+    fetchAllRecordsThroughProxy(5000, updateLoadProgress, loadController.signal)
       .then((json) => {
         if (disposed) return; // F-57: nach Seitenwechsel nicht mehr in den Cache schreiben/rendern
         if (!json.success) throw new Error("CKAN API Fehler.");
-        window._odas_cachedDevelopmentRecordsMap[apiurl] = json;
+        datenCache[apiurl] = json;
         processRecords(json);
       })
       .catch((err) => {
@@ -1014,12 +1134,10 @@ function app(configdata = {}, enclosingHtmlDivElement) {
 }
 
 /*
- * Lädt Chart.js dynamisch in den <head>.
+ * Laedt Bibliotheken in den <head>.
+ * BE-B3: Chart.js wird nicht mehr hier geladen, sondern per ladeChartJs().
  * IMMER am Ende der Datei, AUSSERHALB von app().
  */
 function addToHead() {
-  const script = document.createElement("script");
-  script.src = "vendor/chartjs/chart.umd.min.js";
-  script.crossOrigin = "anonymous";
-  document.head.appendChild(script);
+  return ``;
 }
