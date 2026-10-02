@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.4 - 2026-10-02
+- ENH: Verwendete ODAS-Dienste in `odas-services` deklariert.
+
 ## 1.28.3 - 2026-09-10
 - **FIX:** Same-Page-Re-Render räumt Vorgänger-Instanz ab (BE-B1) — die alte Chart-Instanz leakt nicht mehr.
 - **FIX:** Daten-Cache ist instanzlokal statt fensterglobal (BE-B2). `window._odas_cachedDevelopmentRecordsMap` war der letzte `window`-Cache im Portfolio.
