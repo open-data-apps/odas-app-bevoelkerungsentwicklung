@@ -33,11 +33,11 @@
     {
       "name": "MONAT",
       "title": "Monat (JJJJMM)",
-      "type": "yearmonth",
-      "format": "%Y%m",
-      "description": "Berichtsmonat als sechsstellige Zahl JJJJMM.",
+      "type": "string",
+      "description": "Berichtsmonat als sechsstellige Zeichenkette JJJJMM (CKAN-Typ text).",
       "constraints": {
-        "required": false
+        "required": false,
+        "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$"
       }
     },
     {
