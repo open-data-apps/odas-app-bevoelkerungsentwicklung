@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.7 - 2026-10-13
+- FIX: F-143 (Nachbesserung): Endet die Quelle vor der angekündigten Gesamtzahl oder wiederholt sie eine Seite, zeigt die App den geladenen Teilbestand mit Hinweis („x von y“) statt eines Fehlers; ohne geladene Datensätze bleibt es ein Fehler.
+
 ## 1.28.6 - 2026-10-13
 - FIX: `assets/schema.json`: `MONAT` als `string` mit Muster JJJJMM statt `yearmonth` mit eigenem Format `%Y%m` (nach Table Schema v1 nicht erlaubt; der Store konnte das Schema nicht laden).
 

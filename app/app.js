@@ -670,7 +670,11 @@ function app(configdata = {}, enclosingHtmlDivElement) {
 
       if (!pageRecords.length) {
         if (total !== null && allRecords.length < total) {
-          throw new Error("Datenbestand unvollständig: Die Quelle endet vor der angekündigten Gesamtmenge.");
+          if (!allRecords.length) {
+            throw new Error("Datenbestand unvollständig: Die Quelle endet vor der angekündigten Gesamtmenge.");
+          }
+          // Geladenen Teilbestand gekennzeichnet zeigen statt verwerfen.
+          ladeHinweis = `Datenbestand unvollständig: Die Quelle endet nach ${allRecords.length.toLocaleString("de-DE")} von ${total.toLocaleString("de-DE")} angekündigten Datensätzen. Tabelle und Diagramm zeigen nur den geladenen Teilbestand.`;
         }
         break;
       }
@@ -678,10 +682,9 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       // F-143: Wiederholung auch bei bekanntem total erkennen, vor der Übernahme.
       const pageKey = JSON.stringify(pageRecords.map(record => record._id ?? record.id ?? record.objectid ?? JSON.stringify(record)).sort());
       if (seenPageKeys.has(pageKey)) {
-        const message = "Datenbestand unvollständig: Die Quelle wiederholt eine Seite.";
-        if (total !== null) throw new Error(message);
-        // Bisheriger Ohne-total-Pfad: nutzbaren Teilbestand erhalten, aber kennzeichnen.
-        ladeHinweis = message + " Tabelle und Diagramm zeigen nur den geladenen Teilbestand.";
+        // Mit und ohne bekannte Gesamtzahl: nutzbaren Teilbestand erhalten, aber kennzeichnen.
+        const geladen = total !== null ? ` Geladen: ${allRecords.length.toLocaleString("de-DE")} von ${total.toLocaleString("de-DE")} Datensätzen.` : "";
+        ladeHinweis = "Datenbestand unvollständig: Die Quelle wiederholt eine Seite." + geladen + " Tabelle und Diagramm zeigen nur den geladenen Teilbestand.";
         break;
       }
       seenPageKeys.add(pageKey);
