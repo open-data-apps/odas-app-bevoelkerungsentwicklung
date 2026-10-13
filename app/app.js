@@ -645,6 +645,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     let total = null;
     let pages = 0;
     const seenPageKeys = new Set();
+    let ladeHinweis = "";
 
     onProgress({ loaded: 0, total: null, pages: 0 });
 
@@ -667,18 +668,23 @@ function app(configdata = {}, enclosingHtmlDivElement) {
         total = result.total;
       }
 
-      if (!pageRecords.length) break;
-
-      // Fallback, falls ein Endpunkt offset ignoriert und immer dieselbe Seite liefert.
-      // Die Wiederholung muss vor dem Übernehmen der Records erkannt werden,
-      // sonst wandern die Records der Wiederholungsseite doppelt in allRecords.
-      if (total === null) {
-        const first = pageRecords[0] || {};
-        const last = pageRecords[pageRecords.length - 1] || {};
-        const pageKey = `${pageRecords.length}:${JSON.stringify(first)}:${JSON.stringify(last)}`;
-        if (seenPageKeys.has(pageKey)) break;
-        seenPageKeys.add(pageKey);
+      if (!pageRecords.length) {
+        if (total !== null && allRecords.length < total) {
+          throw new Error("Datenbestand unvollständig: Die Quelle endet vor der angekündigten Gesamtmenge.");
+        }
+        break;
       }
+
+      // F-143: Wiederholung auch bei bekanntem total erkennen, vor der Übernahme.
+      const pageKey = JSON.stringify(pageRecords.map(record => record._id ?? record.id ?? record.objectid ?? JSON.stringify(record)).sort());
+      if (seenPageKeys.has(pageKey)) {
+        const message = "Datenbestand unvollständig: Die Quelle wiederholt eine Seite.";
+        if (total !== null) throw new Error(message);
+        // Bisheriger Ohne-total-Pfad: nutzbaren Teilbestand erhalten, aber kennzeichnen.
+        ladeHinweis = message + " Tabelle und Diagramm zeigen nur den geladenen Teilbestand.";
+        break;
+      }
+      seenPageKeys.add(pageKey);
 
       allRecords.push(...pageRecords);
       offset += pageRecords.length;
@@ -703,6 +709,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
         records: allRecords,
         fields: allFields,
         total: total ?? allRecords.length,
+        ladeHinweis,
       },
     };
   }
@@ -763,6 +770,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           </div>
         </div>
       </div>
+      <div id="be-ladehinweis-${beUid}"></div>
       <p class="text-muted small mt-2" id="odas-count-${beUid}"></p>
       <div id="be-methodik-wrap-${beUid}"></div>
       <div id="be-weitere-infos-wrap-${beUid}"></div>
@@ -792,6 +800,9 @@ function app(configdata = {}, enclosingHtmlDivElement) {
   }
 
   function processRecords(json) {
+    const warning = enclosingHtmlDivElement.querySelector(`#be-ladehinweis-${beUid}`);
+    if (warning) warning.innerHTML = json.result.ladeHinweis
+      ? '<div class="alert alert-warning" role="alert">' + escapeHtml(json.result.ladeHinweis) + '</div>' : '';
     const records = json.result.records;
     const allFields = json.result.fields
       .map((f) => f.id)
