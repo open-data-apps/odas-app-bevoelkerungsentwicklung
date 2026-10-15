@@ -6,7 +6,7 @@ Interaktive Visualisierung von Monatszahlen zur Bevölkerung für den [Open Data
 
 ## Funktionen
 
-![Screenshot der App 1](assets/Desktop_Screenshot_1.png)
+![Screenshot der App 1](assets/Desktop_Screenshot.png)
 
 ![Screenshot der App 2](assets/Desktop_Screenshot_2.png)
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.10 - 2026-10-15
+- DOCS: Neue Store-Screenshots: je drei Desktop- (1440 × 1000) und Mobile-Aufnahmen (390 × 844) der aktuellen App, aufgenommen auf der Dev-Instanz. Bisherige Bilder nach `docs/screenshots/archive/2026-10-13/` verschoben, Bildverweis im README angepasst. Keine Änderung an App-Code oder Konfiguration.
+
 ## 1.28.9 - 2026-10-15
 - FIX: Mobil (bis 575 px): Das Jahresverlauf-Diagramm ist 260 px hoch statt etwa 80 px (vorher feste Canvas-Höhe mit Seitenverhältnis 300:80, die Kurve war nur ein flacher Strich). Auf größeren Bildschirmen bleibt das bisherige Seitenverhältnis.
 
