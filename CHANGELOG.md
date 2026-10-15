@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.28.11 - 2026-10-15
+- FIX: Jahresverlauf (M5): Bewegungszahlen (Geborene, Zugezogene …) verwenden die Jahreszeile `MONAT = Summe` statt Monate und Summenzeile doppelt zu addieren (Geborene insgesamt 2024: 15.221 statt 30.442); Bestandszahlen (Altersgruppen, Familienstand …) zeigen den letzten Monatsstand des Jahres statt der Summe von zwölf Monatsständen. Das laufende Jahr ist als „(unvollständig)“ beschriftet, gestrichelt angebunden und unter dem Diagramm benannt.
+- FIX: Ohne Themenwahl („Alle“) zeigt die App den Hinweis „Bitte ein Thema wählen, um den Verlauf zu sehen.“ statt einer Summe über alle Themen; bei mehreren Ausprägungen entsprechend „Bitte eine Ausprägung wählen …“.
+- FIX: Tabelle zeigt Werte im deutschen Zahlformat (`15.221`, `-0,32`) und `NA` als „–“.
+- FIX: Voreinstellung `datenStand` „Datenstand: laufend (monatlich, Statistisches Amt München)“ statt „Datenstand: 2023“; Beschreibung, Methodik-Hinweis und README beschreiben die neue Jahreswert-Logik.
+- TECH: Tests für Jahreswerte und Tabellenformat (`tests/jahreswerte.test.cjs`).
+
 ## 1.28.10 - 2026-10-15
 - DOCS: Neue Store-Screenshots: je drei Desktop- (1440 × 1000) und Mobile-Aufnahmen (390 × 844) der aktuellen App, aufgenommen auf der Dev-Instanz. Bisherige Bilder nach `docs/screenshots/archive/2026-10-13/` verschoben, Bildverweis im README angepasst. Keine Änderung an App-Code oder Konfiguration.
 

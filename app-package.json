@@ -3,7 +3,7 @@
   "app-entwickler-name": "ondics-gmbh",
   "name-in-url": "bevoelkerungsentwicklung",
   "name": "Bevölkerungsentwicklung",
-  "app-version": "1.28.10",
+  "app-version": "1.28.11",
   "app-package-version": "2",
   "odas-app-icon": "assets/odas-app-icon.svg",
   "app-icon": "assets/odas-app-icon.svg",
@@ -24,7 +24,7 @@
     "",
     "Datensätze lassen sich clientseitig nach Thema und Ausprägung (`MONATSZAHL`, `AUSPRAEGUNG`) sowie Jahr (`JAHR`) filtern; die gefilterte Auswahl wird paginiert in der Tabelle angezeigt.",
     "",
-    "Für das Diagramm summiert die App die gelieferten `WERT`-Werte je `JAHR` (Jahressumme); Zeilen, deren `WERT` nicht numerisch interpretiert werden kann, werden gezählt und als Hinweis angezeigt.",
+    "Das Diagramm zeigt den Jahresverlauf für genau ein Thema und eine Ausprägung: bei Bewegungszahlen (z. B. Geborene, Zugezogene) die von der Quelle gelieferte Jahressumme (`MONAT` = `Summe`), bei Bestandszahlen (z. B. Altersgruppen, Familienstand) den letzten Monatsstand des Jahres. Ein noch laufendes Jahr ist als „(unvollständig)“ beschriftet und gestrichelt angebunden. Zeilen, deren `WERT` nicht numerisch interpretiert werden kann (z. B. `NA` für noch nicht veröffentlichte Monate), werden gezählt und als Hinweis angezeigt; die Tabelle zeigt sie als „–“.",
     "",
     "Welche Felder tatsächlich vorhanden sind und wie aktuell die Daten sind, hängt vom jeweiligen Datensatz ab.",
     "",
@@ -151,7 +151,7 @@
         "",
         "Datensätze lassen sich clientseitig nach Thema und Ausprägung (`MONATSZAHL`, `AUSPRAEGUNG`) sowie Jahr (`JAHR`) filtern; die gefilterte Auswahl wird paginiert in der Tabelle angezeigt.",
         "",
-        "Für das Diagramm summiert die App die gelieferten `WERT`-Werte je `JAHR` (Jahressumme); Zeilen, deren `WERT` nicht numerisch interpretiert werden kann, werden gezählt und als Hinweis angezeigt.",
+        "Das Diagramm zeigt den Jahresverlauf für genau ein Thema und eine Ausprägung: bei Bewegungszahlen (z. B. Geborene, Zugezogene) die von der Quelle gelieferte Jahressumme (`MONAT` = `Summe`), bei Bestandszahlen (z. B. Altersgruppen, Familienstand) den letzten Monatsstand des Jahres. Ein noch laufendes Jahr ist als „(unvollständig)“ beschriftet und gestrichelt angebunden. Zeilen, deren `WERT` nicht numerisch interpretiert werden kann (z. B. `NA` für noch nicht veröffentlichte Monate), werden gezählt und als Hinweis angezeigt; die Tabelle zeigt sie als „–“.",
         "",
         "Welche Felder tatsächlich vorhanden sind und wie aktuell die Daten sind, hängt vom jeweiligen Datensatz ab.",
         "",
@@ -286,7 +286,7 @@
         "typ": "string",
         "laenge": 60
       },
-      "default": "Datenstand: 2023",
+      "default": "Datenstand: laufend (monatlich, Statistisches Amt München)",
       "erforderlich": "nein"
     },
     "datenquelleHinweis": {
@@ -296,7 +296,7 @@
       "format": {
         "typ": "markdown"
       },
-      "default": "Die Bevölkerungsdaten werden über die CKAN Datastore API geladen. Alle Datensätze werden paginiert abgerufen (5000 pro Seite) und im Browser zwischengespeichert. Das Liniendiagramm zeigt die Jahressummen, gruppiert nach dem ausgewählten Thema und der Ausprägung. Die Proxy-URL wird mit mehreren Fallback-Kandidaten aufgelöst.",
+      "default": "Die Bevölkerungsdaten werden über die CKAN Datastore API geladen. Alle Datensätze werden paginiert abgerufen (5000 pro Seite) und im Browser zwischengespeichert. Das Liniendiagramm zeigt für das gewählte Thema und die gewählte Ausprägung je Jahr die Jahressumme (Bewegungszahlen) bzw. den letzten Monatsstand (Bestandszahlen); ein laufendes Jahr ist als unvollständig markiert. Die Proxy-URL wird mit mehreren Fallback-Kandidaten aufgelöst.",
       "erforderlich": "nein"
     },
     "weiterfuehrendeLinks": {

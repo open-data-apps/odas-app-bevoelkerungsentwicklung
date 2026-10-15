@@ -585,6 +585,58 @@ function app(configdata = {}, enclosingHtmlDivElement) {
     return [...ordered, ...remaining];
   }
 
+  // M5: Tabellenzelle lesbar machen – Wertspalten im deutschen Zahlformat,
+  // "NA" (noch nicht veröffentlicht) als „–“; JAHR/MONAT bleiben unverändert.
+  function zellenText(feld, wert) {
+    if (wert === "NA") return "–";
+    if (wert === null || wert === undefined) return "";
+    const zahlFelder = [
+      "WERT",
+      "VORJAHRESWERT",
+      "VERAEND_VORMONAT_PROZENT",
+      "VERAEND_VORJAHRESMONAT_PROZENT",
+      "ZWOELF_MONATE_MITTELWERT",
+    ];
+    const zahl = zahlFelder.includes(feld) ? parseWert(wert) : NaN;
+    return isNaN(zahl) ? String(wert) : zahl.toLocaleString("de-DE");
+  }
+
+  // M5: Jahreswert je JAHR für genau eine Zeitreihe (Thema + Ausprägung).
+  // Bewegungsthemen (Geborene, Zugezogene …) liefern je Jahr eine Zeile
+  // MONAT = "Summe" – sie ist der Jahreswert, die Monate werden nicht
+  // zusätzlich addiert (fehlt sie im laufenden Jahr, zählt die Monatssumme).
+  // Bestandsthemen (Altersgruppen, Familienstand …) haben keine Summe-Zeile:
+  // Jahreswert ist der letzte gültige Monatsstand. MONAT hat das Format
+  // JJJJMM; ein Jahr ohne gültigen Dezemberwert gilt als unvollständig.
+  function jahresWerte(data) {
+    const summe = {}, monatsSumme = {}, letzter = {}, monate = {};
+    data.forEach((r) => {
+      const j = r["JAHR"];
+      const v = parseWert(r["WERT"]);
+      if (!j || isNaN(v)) return;
+      if (r["MONAT"] === "Summe") {
+        summe[j] = v;
+        return;
+      }
+      const m = parseInt(String(r["MONAT"]).slice(-2), 10) || 0;
+      monatsSumme[j] = (monatsSumme[j] || 0) + v;
+      if (m >= (monate[j] || 0)) {
+        letzter[j] = v;
+        monate[j] = m;
+      }
+    });
+    const bewegung = Object.keys(summe).length > 0;
+    const byJahr = {};
+    new Set([...Object.keys(summe), ...Object.keys(letzter)]).forEach((j) => {
+      byJahr[j] = !bewegung ? letzter[j] : j in summe ? summe[j] : monatsSumme[j];
+    });
+    return {
+      byJahr,
+      bewegung,
+      unvollstaendig: Object.keys(byJahr).filter((j) => (monate[j] || 0) < 12),
+    };
+  }
+
   function updateLoadProgress({ loaded = 0, total = null, pages = 0 }) {
     const statusEl = enclosingHtmlDivElement.querySelector(
       `#odas-load-status-${beUid}`,
@@ -764,7 +816,8 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       <div class="card shadow-sm mb-3">
         <div class="card-body">
           <p class="text-muted small mb-2 d-none" id="odas-chart-status-${beUid}" role="status"></p>
-          <div class="be-chart-box"><canvas id="odas-chart-${beUid}"></canvas></div>
+          <p class="text-muted mb-0 d-none" id="odas-chart-leer-${beUid}"></p>
+          <div class="be-chart-box" id="odas-chart-box-${beUid}"><canvas id="odas-chart-${beUid}"></canvas></div>
           <p class="text-muted small mb-0 mt-2 d-none" id="odas-chart-hinweis-${beUid}"></p>
         </div>
       </div>
@@ -897,7 +950,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           (r) =>
             "<tr>" +
             visibleFields
-              .map((f) => `<td title="${escapeHtml(r[f] ?? "")}">${escapeHtml(r[f] ?? "")}</td>`)
+              .map((f) => `<td title="${escapeHtml(zellenText(f, r[f]))}">${escapeHtml(zellenText(f, r[f]))}</td>`)
               .join("") +
             "</tr>",
         )
@@ -950,8 +1003,40 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       renderChart(data);
     }
 
-    // Chart: WERT nach JAHR (Jahressumme) — aus render() ausgelagert (BE-B3).
+    // Chart: Jahreswert je JAHR (M5: jahresWerte) — aus render() ausgelagert (BE-B3).
     function renderChart(data) {
+      // M5: Ein Jahresverlauf ist nur für genau eine Zeitreihe sinnvoll –
+      // Themen bzw. Ausprägungen zu summieren ergäbe fachlich sinnlose Werte.
+      const themen = new Set(data.map((r) => r["MONATSZAHL"]));
+      const auspraegungen = new Set(data.map((r) => r["AUSPRAEGUNG"]));
+      const leerText = themen.size > 1
+        ? "Bitte ein Thema wählen, um den Verlauf zu sehen."
+        : auspraegungen.size > 1
+          ? "Bitte eine Ausprägung wählen, um den Verlauf zu sehen."
+          : "";
+      const leerEl = enclosingHtmlDivElement.querySelector(
+        `#odas-chart-leer-${beUid}`,
+      );
+      const boxEl = enclosingHtmlDivElement.querySelector(
+        `#odas-chart-box-${beUid}`,
+      );
+      if (leerEl) {
+        leerEl.textContent = leerText;
+        leerEl.classList[leerText ? "remove" : "add"]("d-none");
+      }
+      if (boxEl) boxEl.classList[leerText ? "add" : "remove"]("d-none");
+      if (leerText) {
+        if (odasChart) {
+          odasChart.destroy();
+          odasChart = null;
+        }
+        zeigeChartStatus("", "");
+        const hinweisLeerEl = enclosingHtmlDivElement.querySelector(
+          `#odas-chart-hinweis-${beUid}`,
+        );
+        if (hinweisLeerEl) hinweisLeerEl.classList.add("d-none");
+        return;
+      }
       // Chart.js erst bei Bedarf laden: mit Wartezustand und Fehlerpfad,
       // statt das Diagramm stillschweigend wegzulassen.
       if (typeof Chart === "undefined") {
@@ -980,31 +1065,28 @@ function app(configdata = {}, enclosingHtmlDivElement) {
         return;
       }
       {
-        const byJahr = {};
         // F-73: Zeilen ohne gültigen WERT zählen statt sie kommentarlos zu verwerfen.
-        verworfeneDatensaetze = 0;
-        data.forEach((r) => {
-          const j = r["JAHR"];
-          const v = parseWert(r["WERT"]);
-          if (isNaN(v)) {
-            verworfeneDatensaetze += 1;
-            return;
-          }
-          if (j) byJahr[j] = (byJahr[j] || 0) + v;
-        });
+        verworfeneDatensaetze = data.filter((r) => isNaN(parseWert(r["WERT"]))).length;
+        const { byJahr, bewegung, unvollstaendig } = jahresWerte(data);
         const jahre = Object.keys(byJahr).sort();
         const werte = jahre.map((j) => byJahr[j]);
+        // M5: unvollständige Jahre (laufendes Jahr) beschriftet und gestrichelt statt als Abfall.
+        const labels = jahre.map((j) =>
+          unvollstaendig.includes(j) ? [j, "(unvollständig)"] : j,
+        );
         const hinweisEl = enclosingHtmlDivElement.querySelector(
           `#odas-chart-hinweis-${beUid}`,
         );
         if (hinweisEl) {
-          if (verworfeneDatensaetze > 0) {
-            hinweisEl.textContent = `${verworfeneDatensaetze} von ${data.length} Datensätzen ohne gültigen Wert wurden nicht berücksichtigt.`;
-            hinweisEl.classList.remove("d-none");
-          } else {
-            hinweisEl.textContent = "";
-            hinweisEl.classList.add("d-none");
+          const hinweise = [];
+          if (unvollstaendig.length) {
+            hinweise.push(`${unvollstaendig.join(", ")} unvollständig (gestrichelt): noch nicht alle Monate veröffentlicht.`);
           }
+          if (verworfeneDatensaetze > 0) {
+            hinweise.push(`${verworfeneDatensaetze} von ${data.length} Datensätzen ohne gültigen Wert wurden nicht berücksichtigt.`);
+          }
+          hinweisEl.textContent = hinweise.join(" ");
+          hinweisEl.classList[hinweise.length ? "remove" : "add"]("d-none");
         }
         const canvas = enclosingHtmlDivElement.querySelector(
           `#odas-chart-${beUid}`,
@@ -1014,15 +1096,19 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           odasChart = new Chart(canvas.getContext("2d"), {
             type: "line",
             data: {
-              labels: jahre,
+              labels,
               datasets: [
                 {
-                  label: "WERT (Jahressumme)",
+                  label: bewegung ? "Jahressumme" : "Letzter Monatsstand im Jahr",
                   data: werte,
                   borderColor: "rgba(13,110,253,1)",
                   backgroundColor: "rgba(13,110,253,0.1)",
                   fill: true,
                   tension: 0.3,
+                  segment: {
+                    borderDash: (c) =>
+                      unvollstaendig.includes(jahre[c.p1DataIndex]) ? [6, 4] : undefined,
+                  },
                 },
               ],
             },

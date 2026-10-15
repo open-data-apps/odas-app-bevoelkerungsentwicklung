@@ -14,7 +14,8 @@ Single Page Application mit Logo, Menü, Impressum/Datenschutz/Kontakt-Seiten un
 
 - Filter nach Thema (`MONATSZAHL`), Ausprägung (`AUSPRAEGUNG`) und Jahr (`JAHR`)
 - Tabellarische Anzeige der CKAN-Datensätze mit Seitenblätterung (25 je Seite)
-- Linienchart mit Jahressummen für `WERT`; wird Chart.js verzögert oder nicht geladen, erscheint ein Hinweis statt eines stillschweigend fehlenden Diagramms
+- Tabelle mit Werten im deutschen Zahlformat, `NA` als „–“
+- Linienchart je Thema und Ausprägung: Jahressumme bei Bewegungszahlen (Zeile `MONAT` = `Summe`), letzter Monatsstand bei Bestandszahlen, laufendes Jahr als „(unvollständig)“ markiert; ohne Themenwahl erscheint ein Hinweis statt einer sinnlosen Gesamtsumme; wird Chart.js verzögert oder nicht geladen, erscheint ein Hinweis statt eines stillschweigend fehlenden Diagramms
 - Zeilen ohne gültigen Wert werden gezählt und ausgewiesen statt still mit 0 gerechnet
 - Robuster Datenabruf über lokalen Proxy-Endpunkt `/odp-data`
 
@@ -35,7 +36,7 @@ Datensätze mit folgenden Kernfeldern (weitere Felder sind zulässig):
 | `MONATSZAHL`  | Thema/Kategorie                    |
 | `AUSPRAEGUNG` | Ausprägung innerhalb der Kategorie |
 | `JAHR`        | Jahr der Beobachtung               |
-| `WERT`        | Numerischer Wert (für Chart-Summe) |
+| `WERT`        | Numerischer Wert (für den Jahreswert im Chart) |
 
 ---
 
