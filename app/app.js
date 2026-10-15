@@ -764,7 +764,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       <div class="card shadow-sm mb-3">
         <div class="card-body">
           <p class="text-muted small mb-2 d-none" id="odas-chart-status-${beUid}" role="status"></p>
-          <canvas id="odas-chart-${beUid}" height="80"></canvas>
+          <div class="be-chart-box"><canvas id="odas-chart-${beUid}"></canvas></div>
           <p class="text-muted small mb-0 mt-2 d-none" id="odas-chart-hinweis-${beUid}"></p>
         </div>
       </div>
@@ -1028,6 +1028,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: {
                 title: { display: true, text: `${titel} – Jahresverlauf` },
               },

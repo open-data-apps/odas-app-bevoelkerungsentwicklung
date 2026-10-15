@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.9 - 2026-10-15
+- FIX: Mobil (bis 575 px): Das Jahresverlauf-Diagramm ist 260 px hoch statt etwa 80 px (vorher feste Canvas-Höhe mit Seitenverhältnis 300:80, die Kurve war nur ein flacher Strich). Auf größeren Bildschirmen bleibt das bisherige Seitenverhältnis.
+
 ## 1.28.8 - 2026-10-13
 - FIX: Standard-Fehleranzeige gibt präzisere Tipps: ein „Failed to fetch“ ohne Proxy-Kontext erhält einen Netzwerk-Hinweis statt `proxyAktiv`; der 404-Hinweis gilt nur noch für echte HTTP-404-Antworten und nennt den lokal fehlenden Proxy/Relay statt pauschal „Datensatz auf dem Portal nicht gefunden“.
 

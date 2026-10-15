@@ -55,3 +55,17 @@
 .be-weitere-infos-content a {
   overflow-wrap: anywhere;
 }
+
+/* Diagramm: bisheriges Seitenverhältnis (300:80) auf größeren Bildschirmen, auf dem Handy feste Höhe,
+   damit es dort nicht auf ~80 px schrumpft. */
+.be-chart-box {
+  position: relative;
+  aspect-ratio: 300 / 80;
+}
+
+@media (max-width: 575.98px) {
+  .be-chart-box {
+    aspect-ratio: auto;
+    height: 260px;
+  }
+}
