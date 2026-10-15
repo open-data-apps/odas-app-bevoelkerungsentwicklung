@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.12 - 2026-10-15
+- FIX: Kopfzeile bei 360 px ohne Überlauf (Template): Logo- und Burger-Spalte passen sich der Breite an, das Menü-Symbol ragt nicht mehr über den rechten Rand. Keine Änderung an App-Code oder Konfiguration.
+
 ## 1.28.11 - 2026-10-15
 - FIX: Jahresverlauf (M5): Bewegungszahlen (Geborene, Zugezogene …) verwenden die Jahreszeile `MONAT = Summe` statt Monate und Summenzeile doppelt zu addieren (Geborene insgesamt 2024: 15.221 statt 30.442); Bestandszahlen (Altersgruppen, Familienstand …) zeigen den letzten Monatsstand des Jahres statt der Summe von zwölf Monatsständen. Das laufende Jahr ist als „(unvollständig)“ beschriftet, gestrichelt angebunden und unter dem Diagramm benannt.
 - FIX: Ohne Themenwahl („Alle“) zeigt die App den Hinweis „Bitte ein Thema wählen, um den Verlauf zu sehen.“ statt einer Summe über alle Themen; bei mehreren Ausprägungen entsprechend „Bitte eine Ausprägung wählen …“.
