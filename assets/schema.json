@@ -44,6 +44,10 @@
       "name": "WERT",
       "title": "Wert",
       "type": "number",
+      "missingValues": [
+        "",
+        "NA"
+      ],
       "description": "Gemessener Monatswert (z. B. Einwohnerzahl).",
       "constraints": {
         "required": false
@@ -53,6 +57,10 @@
       "name": "VORJAHRESWERT",
       "title": "Vorjahreswert",
       "type": "number",
+      "missingValues": [
+        "",
+        "NA"
+      ],
       "description": "Wert des Vorjahresmonats.",
       "constraints": {
         "required": false
@@ -62,6 +70,10 @@
       "name": "VERAEND_VORMONAT_PROZENT",
       "title": "Veränderung zum Vormonat (%)",
       "type": "number",
+      "missingValues": [
+        "",
+        "NA"
+      ],
       "description": "Prozentuale Veränderung gegenüber dem Vormonat.",
       "constraints": {
         "required": false
@@ -71,6 +83,10 @@
       "name": "VERAEND_VORJAHRESMONAT_PROZENT",
       "title": "Veränderung zum Vorjahresmonat (%)",
       "type": "number",
+      "missingValues": [
+        "",
+        "NA"
+      ],
       "description": "Prozentuale Veränderung gegenüber dem Vorjahresmonat.",
       "constraints": {
         "required": false
@@ -80,6 +96,10 @@
       "name": "ZWOELF_MONATE_MITTELWERT",
       "title": "12-Monate-Mittelwert",
       "type": "number",
+      "missingValues": [
+        "",
+        "NA"
+      ],
       "description": "Mittelwert der letzten zwölf Monate.",
       "constraints": {
         "required": false

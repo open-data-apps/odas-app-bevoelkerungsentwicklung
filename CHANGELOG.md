@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.13 - 2026-10-16
+- FIX: Schema: `NA` (noch nicht veröffentlicht) ist in den Zahlenfeldern als fehlender Wert erlaubt, wie die App ihn bereits als „–“ anzeigt; die Store-Datenprüfung meldete sonst Fehler.
+
 ## 1.28.12 - 2026-10-15
 - FIX: Kopfzeile bei 360 px ohne Überlauf (Template): Logo- und Burger-Spalte passen sich der Breite an, das Menü-Symbol ragt nicht mehr über den rechten Rand. Keine Änderung an App-Code oder Konfiguration.
 
