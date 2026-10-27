@@ -391,6 +391,31 @@ function parseWert(value) {
   return parseFloat(s);
 }
 
+// Live-Befund 27.10.2026: Nach einem Themenwechsel blieb eine themenfremde
+// Ausprägung aktiv (0 Datensätze). Leeres Thema = alle Ausprägungen.
+function auspraegungenZuThema(records, thema) {
+  return [...new Set(records
+    .filter((r) => !thema || String(r["MONATSZAHL"]) === thema)
+    .map((r) => r["AUSPRAEGUNG"]))];
+}
+
+// Letzter Monat (JJJJMM) mit veröffentlichtem Zahlenwert; "NA" und "Summe" zählen nicht.
+function letzterVeroeffentlichterMonat(records) {
+  return records.reduce((max, r) => {
+    const monat = String(r["MONAT"] || "");
+    if (!/^\d{6}$/.test(monat) || !Number.isFinite(parseWert(r["WERT"]))) return max;
+    return monat > max ? monat : max;
+  }, "");
+}
+
+function formatMonat(jjjjmm) {
+  const namen = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
+    "August", "September", "Oktober", "November", "Dezember"];
+  const m = /^(\d{4})(\d{2})$/.exec(String(jjjjmm || ""));
+  const name = m && namen[Number(m[2]) - 1];
+  return name ? `${name} ${m[1]}` : "";
+}
+
 // ── Hilfsfunktion: Ist ein String JSON? ───────────────────────────────────
 function looksLikeJson(text) {
   const t = String(text).trim();
@@ -974,9 +999,12 @@ function app(configdata = {}, enclosingHtmlDivElement) {
           </table>
         </div>`;
 
+      const letzterMonat = letzterVeroeffentlichterMonat(data);
       enclosingHtmlDivElement.querySelector(
         `#odas-count-${beUid}`,
-      ).textContent = `${data.length} Datensätze.`;
+      ).textContent = `${data.length} Datensätze.` + (letzterMonat
+        ? ` Letzter veröffentlichter Monat in dieser Auswahl: ${formatMonat(letzterMonat)}.`
+        : "");
 
       const prevBtn = enclosingHtmlDivElement.querySelector(
         `#odas-prev-page-${beUid}`,
@@ -1125,6 +1153,18 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       }
     }
 
+    // Ausprägungsliste auf das gewählte Thema einschränken; eine nicht mehr
+    // passende Wahl springt auf „Alle“ zurück.
+    function aktualisiereAuspraegungen(thema) {
+      const sel = enclosingHtmlDivElement.querySelector(`#odas-filter-ausp-${beUid}`);
+      if (!sel) return;
+      const bisher = sel.value;
+      const werte = auspraegungenZuThema(records, thema);
+      while (sel.options.length > 1) sel.remove(1);
+      fillSelect(`#odas-filter-ausp-${beUid}`, werte);
+      sel.value = werte.map(String).includes(bisher) ? bisher : "";
+    }
+
     // ── Filter-Logik ───────────────────────────────────────────────────
     function getFiltered() {
       const fT =
@@ -1153,6 +1193,7 @@ function app(configdata = {}, enclosingHtmlDivElement) {
       if (el)
         el.addEventListener("change", () => {
           currentPage = 1;
+          if (id === `#odas-filter-thema-${beUid}`) aktualisiereAuspraegungen(el.value);
           render(getFiltered());
         });
     });

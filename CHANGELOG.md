@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.28.14 - 2026-10-27
+- FIX: „Ausprägung“ zeigt nur noch Werte des gewählten Themas. Passt eine gewählte Ausprägung nach einem Themenwechsel nicht mehr, springt sie auf „Alle“ zurück (vorher 0 Datensätze, Live-Befund 27.10.2026).
+- ENH: Unter der Tabelle steht der letzte veröffentlichte Monat der aktuellen Auswahl (z. B. „März 2026“), damit ein laufendes Jahr nicht als vollständig gelesen wird.
+- DOCS: Store-Katalogtext ohne Instanz-Platzhalter: Links mit Platzhalterziel erscheinen dort als Text, weil die Katalogseite keine Instanz kennt und Platzhalter nicht auflöst (Live-Befund 27.10.2026). „Über diese App“ in der App bleibt unverändert.
+
 ## 1.28.13 - 2026-10-16
 - FIX: Schema: `NA` (noch nicht veröffentlicht) ist in den Zahlenfeldern als fehlender Wert erlaubt, wie die App ihn bereits als „–“ anzeigt; die Store-Datenprüfung meldete sonst Fehler.
 
