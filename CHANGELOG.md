@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.15 - 2026-11-03
+- DOCS: MIT-Lizenz ergänzt: `LICENSE` liegt im Repository und im Lieferpaket (`make zip`), das README hat einen Abschnitt „Lizenz“. Keine Änderung an App-Code oder Konfiguration.
+
 ## 1.28.14 - 2026-10-27
 - FIX: „Ausprägung“ zeigt nur noch Werte des gewählten Themas. Passt eine gewählte Ausprägung nach einem Themenwechsel nicht mehr, springt sie auf „Alle“ zurück (vorher 0 Datensätze, Live-Befund 27.10.2026).
 - ENH: Unter der Tabelle steht der letzte veröffentlichte Monat der aktuellen Auswahl (z. B. „März 2026“), damit ein laufendes Jahr nicht als vollständig gelesen wird.
